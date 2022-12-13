@@ -1,0 +1,441 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Thymeleaf | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Thymeleaf | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Thymeleaf 是一个跟 Velocity、FreeMarker 类似的模板引擎，它可以完全替代 JSP 。
+Thymeleaf的优点：
+1)开箱即用，它提供标准和spring标准两种方言，可以直接套用模板实现JSTL、 OGNL表达式..." />
+    <meta name="keywords" content="Thymeleaf,SpringBoot" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Thymeleaf
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-06
+              </span>
+              <span>
+                12 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/pn7iqMNhH/" class="post-tag">
+                  # Thymeleaf
+                </a>
+              
+                <a href="https://Git0814.github.io/tag/n3tC7_8P_/" class="post-tag">
+                  # SpringBoot
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Thymeleaf 是一个跟 Velocity、FreeMarker 类似的模板引擎，它可以完全替代 JSP 。</p>
+<p>Thymeleaf的优点：</p>
+<p>1)开箱即用，它提供标准和spring标准两种方言，可以直接套用模板实现JSTL、 OGNL表达式效果，避免每天套模板、改jstl、改标签的困扰。同时开发人员也可以扩展和创建自定义的方言；<br>
+2)Thymeleaf 提供spring标准方言和一个与 SpringMVC 完美集成的可选模块，可以快速的实现表单绑定、属性编辑器、国际化等功能。<br>
+3)有网无网的情况下模版页面都可以执行，美工的页面拿来就可以用，相对jsp减少了额外的标签，页面也更加简洁。</p>
+<p><code>注意：Spring-boot支持FreeMarker、Thymeleaf、jsp、veocity 。但是对freemarker和thymeleaf的支持最好，不推荐使用jsp</code></p>
+<p><strong>使用Thymeleaf:</strong></p>
+<p>引入jar包依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>thymeleaf的自动配置了规则前缀和后缀，所以只要我们把html页面放在calsspath:/templates/下，thymeleaf就能自动渲染。</p>
+<p>要使用Thymeleaf语法，首先要声明名称空间：<code> xmlns:th=&quot;http://www.thymeleaf.org&quot;</code></p>
+<p>Thymeleaf常用的属性有七八个。其中th属性执行的优先级从1~8，数字越低优先级越高。</p>
+<ul>
+<li>
+<p>th:text ：设置当前元素的文本内容，相同功能的还有th:utext，两者的区别在于前者不会转义html标签，后者会。优先级不高：order=7</p>
+</li>
+<li>
+<p>th:value：设置当前元素的value值，类似修改指定属性的还有th:src，th:href。优先级不高：order=6</p>
+</li>
+<li>
+<p>th:each：遍历循环元素，和th:text或th:value一起使用。注意该属性修饰的标签位置，详细往后看。优先级很高：order=2</p>
+</li>
+<li>
+<p>th:if：条件判断，类似的还有th:unless，th:switch，th:case。优先级较高：order=3</p>
+</li>
+<li>
+<p>th:insert：代码块引入，类似的还有th:replace，th:include，三者的区别较大，若使用不恰当会破坏html结构，常用于公共代码块提取的场景。优先级最高：order=1</p>
+</li>
+<li>
+<p>th:fragment：定义代码块，方便被th:insert引用。优先级最低：order=8</p>
+</li>
+<li>
+<p>th:object：声明变量，一般和*{}一起配合使用，达到偷懒的效果。优先级一般：order=4</p>
+</li>
+<li>
+<p>th:attr：修改任意属性，实际开发中用的较少，因为有丰富的其他th属性帮忙，类似的还有th:attrappend，th:attrprepend。优先级一般：order=5</p>
+</li>
+</ul>
+<p>举个thymeleaf的使用例子:</p>
+<p>先写一个entity实体类   <code>Car</code>：</p>
+<pre><code>@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Car {
+    private String brand;
+    private int price;
+    private String color;
+    private String method;
+}
+</code></pre>
+<p>再写一个controller类：</p>
+<pre><code>@Controller
+public class control {
+
+    @RequestMapping(&quot;/bage&quot;)
+    public String sout(Model model){
+
+        model.addAttribute(&quot;msg&quot;,&quot;这是&lt;b&gt;th:text&lt;/b&gt;&quot;);
+        model.addAttribute(&quot;msgValue&quot;,&quot;这是&lt;b&gt;th:utext&lt;/b&gt;&quot;);
+
+        Car car = new Car(&quot;benz&quot;, 1234567, &quot;white&quot;,&quot;售出&quot;);
+        model.addAttribute(&quot;car&quot;,car);
+
+        //绑定一个list
+        List list=new ArrayList();
+        list.add(car);
+        list.add(new Car(&quot;audi&quot;,600000,&quot;black&quot;,&quot;未售出&quot;));
+        list.add(new Car(&quot;bmw&quot;,4567891,&quot;blue&quot;,&quot;售出&quot;));
+        model.addAttribute(&quot;cars&quot;,list);
+
+        //绑定一个map
+        Map&lt;String,Object&gt; map=new HashMap&lt;&gt;();
+        map.put(&quot;chinese&quot;,new Car(&quot;geely&quot;,300000,&quot;glue&quot;,&quot;未售出&quot;));
+        model.addAttribute(&quot;map&quot;,map);
+
+        model.addAttribute(&quot;itdragonStr&quot;,&quot;this is a DEMO&quot;);
+        //前缀：classpath:/templates/ success  后缀.html
+        return &quot;thymeleaf&quot;;
+    }
+
+}
+</code></pre>
+<p>最后书写一个thymeleaf.html</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot; xmlns:th=&quot;http://www.thymeleaf.org&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;link th:href=&quot;@{/style.css}&quot;  rel=&quot;stylesheet&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;h1&gt;这是个测试页面&lt;/h1&gt;
+&lt;p th:text=&quot;${msg}&quot;&gt;&lt;/p&gt;
+&lt;p th:utext=&quot;${msgValue}&quot;&gt;&lt;/p&gt;
+
+&lt;table border=&quot;1px&quot; th:width=&quot;200px&quot;&gt;
+    &lt;thead&gt;
+    &lt;tr&gt;
+        &lt;th&gt;品牌&lt;/th&gt;
+        &lt;th&gt;价格&lt;/th&gt;
+        &lt;th&gt;颜色&lt;/th&gt;
+        &lt;th&gt;状态&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+    &lt;tr th:each=&quot;car:${cars}&quot;&gt;
+        &lt;td th:text=&quot;${car.brand}&quot;&gt;&lt;/td&gt;
+        &lt;td th:text=&quot;${car.price}&quot;&gt;&lt;/td&gt;
+        &lt;td th:text=&quot;${car.color}&quot;&gt;&lt;/td&gt;
+        &lt;td th:text=&quot;${car.method}&quot;&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p th:text=&quot;${map.chinese.brand}&quot; th:if=&quot;${map.chinese.price ge 300000}&quot;&gt;&lt;/p&gt;
+
+
+
+&lt;!--三种不同的引入方式--&gt;
+&lt;div th:insert=&quot;fragment :: noway&quot;&gt;&lt;/div&gt;
+&lt;div th:replace=&quot;fragment :: noway&quot;&gt;&lt;/div&gt;
+&lt;div th:include=&quot;fragment :: noway&quot;&gt;&lt;/div&gt;
+
+&lt;h3&gt;#strings &lt;/h3&gt;
+&lt;div th:if=&quot;${not #strings.isEmpty(itdragonStr)}&quot; &gt;
+    &lt;p&gt;Old Str : &lt;span th:text=&quot;${itdragonStr}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;toUpperCase : &lt;span th:text=&quot;${#strings.toUpperCase(itdragonStr)}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;toLowerCase : &lt;span th:text=&quot;${#strings.toLowerCase(itdragonStr)}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;equals : &lt;span th:text=&quot;${#strings.equals(itdragonStr, 'itdragonblog')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;equalsIgnoreCase : &lt;span th:text=&quot;${#strings.equalsIgnoreCase(itdragonStr, 'itdragonblog')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;indexOf : &lt;span th:text=&quot;${#strings.indexOf(itdragonStr, 'r')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;substring : &lt;span th:text=&quot;${#strings.substring(itdragonStr, 2, 8)}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;replace : &lt;span th:text=&quot;${#strings.replace(itdragonStr, 'it', 'IT')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;startsWith : &lt;span th:text=&quot;${#strings.startsWith(itdragonStr, 'it')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;contains : &lt;span th:text=&quot;${#strings.contains(itdragonStr, 'IT')}&quot;/&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>1、th:text   th:utext<br>
+设置当前元素的文本内容 ，两者的区别是th:text不会解析html，用th:utext会解析html，在页面中显示相应的样式。<br>
+<img src="https://Git0814.github.io/post-images/1667720843961.png" alt="" loading="lazy"></p>
+<p>2、th:each<br>
+作用是遍历列表</p>
+<p>3、th:if<br>
+作用是条件判断</p>
+<p>其中关系运算：</p>
+<ul>
+<li>gt：great than（大于）</li>
+<li>ge：great equal（大于等于）</li>
+<li>eq：equal（等于）</li>
+<li>lt：less than（小于）</li>
+<li>le：less equal（小于等于）</li>
+<li>ne：not equal（不等于）</li>
+</ul>
+<p>最后得到页面显示结果：<br>
+<img src="https://Git0814.github.io/post-images/1667721110787.png" alt="" loading="lazy"></p>
+<p>4、th:fragment</p>
+<ul>
+<li>th:fragment定义代码块标识</li>
+</ul>
+<p>5、th:insert，th:replace，th:include</p>
+<ul>
+<li>th:insert：将代码块片段整个插入到使用了th:insert的HTML标签中</li>
+<li></li>
+<li>th:replace：将代码块片段整个替换使用了th:replace的HTML标签中</li>
+<li></li>
+<li>th:include：将代码块片段包含的内容插入到使用了th:include的HTML标签中</li>
+</ul>
+<p>4和5通常是结合起来使用的，例如：<br>
+先写一个fragment.html   ， 内容为：</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot; xmlns:th=&quot;http://www.thymeleaf.org&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;p th:fragment=&quot;noway&quot;&gt;
+    &amp;2019 The Good Thymes Virtual Grocery
+&lt;/p&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>可见此处将一个p标签定义了一个id=”noway“</p>
+<p>当另一个页面想要直接引用这个p标签时，则使用5中的方法即可;</p>
+<pre><code>&lt;!--三种不同的引入方式--&gt;
+&lt;div th:insert=&quot;fragment :: noway&quot;&gt;&lt;/div&gt;
+&lt;div th:replace=&quot;fragment :: noway&quot;&gt;&lt;/div&gt;
+&lt;div th:include=&quot;fragment :: noway&quot;&gt;&lt;/div&gt;
+</code></pre>
+<p><code>    :: 前面为标签所在的html位置，后面为id名</code></p>
+<p>6、 @{…} 链接表达式</p>
+<p>链接表达式好处：不管是静态资源的引用，form表单的请求，凡是链接都可以用@{…} 。这样可以动态获取项目路径，即便项目名变了，依然可以正常访问。</p>
+<p>例如当想要引入一个静态资源，如css</p>
+<pre><code>&lt;link th:href=&quot;@{/style.css}&quot;  rel=&quot;stylesheet&quot;&gt;
+</code></pre>
+<p>这样就可以直接引入一个css内容。因此也可以直接引入js等内容。所以这个标签也可以常用来提取公共页面部分。</p>
+<p>7、 ${…}变量表达式</p>
+<p>变量表达式功能：</p>
+<ul>
+<li>可以获取对象的属性和方法</li>
+<li>可以使用ctx，vars，locale，request，response，session，servletContext内置对象</li>
+<li>可以使用dates，numbers，strings，objects，arrays，lists，sets，maps等内置方法</li>
+</ul>
+<p>常用的内置方法:</p>
+<ul>
+<li>
+<p>strings：字符串格式化方法，常用的Java方法它都有。比如：equals，equalsIgnoreCase，length，trim，toUpperCase，toLowerCase，indexOf，substring，replace，startsWith，endsWith，contains，containsIgnoreCase等</p>
+</li>
+<li>
+<p>numbers：数值格式化方法，常用的方法有：formatDecimal等</p>
+</li>
+<li>
+<p>bools：布尔方法，常用的方法有：isTrue，isFalse等</p>
+</li>
+<li>
+<p>arrays：数组方法，常用的方法有：toArray，length，isEmpty，contains，containsAll等</p>
+</li>
+<li>
+<p>lists，sets：集合方法，常用的方法有：toList，size，isEmpty，contains，containsAll，sort等</p>
+</li>
+<li>
+<p>maps：对象方法，常用的方法有：size，isEmpty，containsKey，containsValue等</p>
+</li>
+<li>
+<p>dates：日期方法，常用的方法有：format，year，month，hour，createNow等</p>
+</li>
+</ul>
+<p>用strings和bools进行举例说明：</p>
+<p>先在controller类中写入：</p>
+<pre><code>    model.addAttribute(&quot;itdragonStr&quot;,&quot;this is a DEMO&quot;);
+
+    model.addAttribute(&quot;bool&quot;,true);
+</code></pre>
+<p>然后在thymeleaf.html中使用</p>
+<pre><code>&lt;div th:if=&quot;${not #strings.isEmpty(itdragonStr)}&quot; &gt;
+    &lt;p&gt;Old Str : &lt;span th:text=&quot;${itdragonStr}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;toUpperCase : &lt;span th:text=&quot;${#strings.toUpperCase(itdragonStr)}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;toLowerCase : &lt;span th:text=&quot;${#strings.toLowerCase(itdragonStr)}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;equals : &lt;span th:text=&quot;${#strings.equals(itdragonStr, 'itdragonblog')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;equalsIgnoreCase : &lt;span th:text=&quot;${#strings.equalsIgnoreCase(itdragonStr, 'itdragonblog')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;indexOf : &lt;span th:text=&quot;${#strings.indexOf(itdragonStr, 'r')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;substring : &lt;span th:text=&quot;${#strings.substring(itdragonStr, 2, 8)}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;replace : &lt;span th:text=&quot;${#strings.replace(itdragonStr, 'it', 'IT')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;startsWith : &lt;span th:text=&quot;${#strings.startsWith(itdragonStr, 'it')}&quot;/&gt;&lt;/p&gt;
+    &lt;p&gt;contains : &lt;span th:text=&quot;${#strings.contains(itdragonStr, 'IT')}&quot;/&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div&gt;
+    &lt;p&gt;Boolen:&lt;span th:text=&quot;${#bools.isTrue(bool)}&quot;&gt;&lt;/span&gt; &lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+<p>最后得到结果如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://Git0814.github.io/post-images/1667722046253.png" alt="" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/guan-yu-springboot-zhong-de-static-he-templates/">
+              <h3 class="post-title">
+                关于SpringBoot中的static和templates
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

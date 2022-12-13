@@ -1,0 +1,352 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SpringBoot整合mybatis | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="SpringBoot整合mybatis | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="MyBatis 是一款优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的 JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简单的 XML 或注解来配置和映射原生信息，将接口和 ..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              SpringBoot整合mybatis
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-08
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>MyBatis 是一款优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的 JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简单的 XML 或注解来配置和映射原生信息，将接口和 Java 的 POJOs(Plain Ordinary Java Object,普通的 Java对象)映射成数据库中的记录。</p>
+<p>MyBatis 是支持普通 SQL查询，存储过程和高级映射的优秀持久层框架。MyBatis 消除了几乎所有的JDBC代码和参数的手工设置以及结果集的检索。MyBatis 使用简单的 XML或注解用于配置和原始映射，将接口和 Java 的POJOs（Plain Ordinary Java Objects，普通的 Java对象）映射成数据库中的记录</p>
+<p>在pom.xml中引入mybatis依赖：</p>
+<pre><code>&lt;dependency&gt;
+        &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;2.1.4&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p><img src="https://Git0814.github.io/post-images/1667890317599.png" alt="" loading="lazy"><br>
+可以看出，当我们引入<code>mybatis-spring-boot-starter</code>之后，也就包含了mybatis，mybatis-spring的jar包</p>
+<p>接下来就是在application.yml中配置mybatis 的选项，以及数据库的访问配置：<br>
+例如：</p>
+<pre><code>spring:
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/ssmbuild
+        username: root
+        password: 123456
+
+mybatis:
+    mapper-locations: classpath:mybatis/Mapper/*.xml
+    configuration:  map-underscore-to-camel-case: true
+</code></pre>
+<p>SpringBoot默认使用的是 <code>HikariCP</code>作为默认数据库连接池，所以当我们想要使用Druid作为连接池的时候还需要引入依赖：</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+    &lt;artifactId&gt;druid-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;1.1.17&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>当引入依赖之后还需要再配置druid的参数信息</p>
+<pre><code>spring:
+    datasource:
+        druid:
+        initial-size: 5
+        min-idle: 5
+        max-active: 20
+        max-wait: 60000
+        time-between-eviction-runs-millis: 60000
+        min-evictable-idle-time-millis: 300000
+        validation-query: SELECT1FROMDUAL
+        test-while-idle: true
+        test-on-borrow: false
+        test-on-return: false
+        filter:
+            slf4j:
+            enabled: true
+            statement-create-after-log-enabled: false
+            statement-close-after-log-enabled: false
+            result-set-open-after-log-enabled: false
+            result-set-close-after-log-enabled: false
+            result-set-log-enabled: false
+</code></pre>
+<p>因为druid的配置信息和数据库的访问配置都位于：</p>
+<pre><code>spring:
+        datasource:
+</code></pre>
+<p>所以也可以直接将二者的配置信息写到一起：</p>
+<pre><code>spring:
+    datasource:
+
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/ssmbuild
+        username: root
+        password: 123456
+
+        druid:
+        initial-size: 5
+        min-idle: 5
+        max-active: 20
+        max-wait: 60000
+        time-between-eviction-runs-millis: 60000
+        min-evictable-idle-time-millis: 300000
+        validation-query: SELECT1FROMDUAL
+        test-while-idle: true
+        test-on-borrow: false
+        test-on-return: false
+        filter:
+            slf4j:
+            enabled: true
+            statement-create-after-log-enabled: false
+            statement-close-after-log-enabled: false
+            result-set-open-after-log-enabled: false
+            result-set-close-after-log-enabled: false
+            result-set-log-enabled: false
+</code></pre>
+<p>接下来就可以按照spring使用mybatis的方法来对mybatis进行操作</p>
+<p><strong>mybatis分页：</strong></p>
+<p>分页一直都是个头疼的问题，不过当我们引入pagehelper这个插件之后，分页就变得轻而易举了。</p>
+<p>首先，我们需要在 pom.xml 文件中添加分页插件依赖包。</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.github.pagehelper&lt;/groupId&gt;
+    &lt;artifactId&gt;pagehelper-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;1.4.5&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>然后在 application.yml 配置文件中添加分页插件有关的配置。</p>
+<pre><code># pagehelper   
+pagehelper:
+    helperDialect: mysql
+    reasonable: true
+    supportMethodsArguments: true
+    params: count=countSql
+</code></pre>
+<p>然后在DAO层添加上一个分页查询的方法，不过该方法与查询全部数据的方法可以说是一模一样：<br>
+<code>List&lt;Book&gt; findByPager();</code></p>
+<p>然后在Mapper.xml中写入查询语句：</p>
+<pre><code>&lt;select id=&quot;findByPager&quot; resultType=&quot;com.boot.uploadfile.entity.Book&quot;&gt;
+    select * from books
+&lt;/select&gt;
+</code></pre>
+<p>最后在BookServiceImpl类中写入：</p>
+<pre><code>@Autowired
+BookMapper bookMapper;
+
+public Page&lt;Book&gt; getBookList(int pageNum, int pageSize) {
+    Page&lt;Book&gt; BookPage = PageHelper.startPage(pageNum, pageSize).doSelectPage(() -&gt; bookMapper.findByPager());
+    return BookPage;
+}
+</code></pre>
+<p>pageNum为当前页码，pageSize为每页的数据量</p>
+<p>最后在测试类中进行测试：</p>
+<pre><code>@Test
+void test2(){
+    Page&lt;Book&gt; bookList = bookService.getBookList(3, 2);
+    System.out.println(bookList);
+}
+</code></pre>
+<p>可发现分页查询成功。此处的 <code>bookService.getBookList(3, 2);</code>表示每页的数据量为2条数据，查询第三页的数据。当pageNum的大小超过了原本分页的数量后，会默认查询到最后一页中的数据。</p>
+<p>为了更好的进行分页操作，还可以封装一个类表示我们分页查询后的结果：</p>
+<pre><code>@Data
+@AllArgsConstructor
+public class Pager&lt;T&gt; implements Serializable {
+
+    /**
+    * 当前页
+    */
+    private int currentPageNum;
+
+    /**
+    * 总页数
+    */
+    private int totalPageNum;
+
+    /**
+    * 每页记录数量
+    */
+    private int pageSize;
+
+    /**
+    * 总记录数
+    */
+    private long totalCount;
+
+    /**
+    * 当前页记录集合
+    */
+    List&lt;T&gt; dataCurrentPage;
+
+    /**
+    * 传入Page结果对象构造Pageing对象
+    *
+    * @param pageResult 分页查询结果Page对象
+    */
+    public Pager(Page&lt;T&gt; pageResult) {
+        this.currentPageNum = pageResult.getPageNum();
+        this.totalPageNum = pageResult.getPages();
+        this.totalCount = pageResult.getTotal();
+        this.pageSize = pageResult.getPageSize();
+        this.dataCurrentPage = pageResult.getResult();
+    }
+}
+</code></pre>
+<p>此时需要修改Impl中的查询语句为：</p>
+<pre><code>public Pager&lt;Book&gt; getBookList(int currentPage, int pageSize) {
+    Page&lt;Book&gt; BookPage = PageHelper.startPage(currentPage, pageSize).doSelectPage(() -&gt; bookMapper.findByPager());
+    Pager&lt;Book&gt; bookPager = new Pager&lt;&gt;(BookPage);
+    return bookPager;
+}
+</code></pre>
+<p>这样查询返回的结果就是一个类，而我们也就可以更好的操纵类中的数据，最后的结果可以类似为：<br>
+<img src="https://Git0814.github.io/post-images/1667907689308.png" alt="" loading="lazy"><br>
+红框标记出的数据就是我们依靠这个类可以得到的结果。</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/springboot-wen-jian-shang-chuan/">
+              <h3 class="post-title">
+                SpringBoot文件上传
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

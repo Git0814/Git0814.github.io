@@ -1,0 +1,292 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redis（五）主从复制 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Redis（五）主从复制 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="redis的主从复制概念和MySQL的主从复制大概类似。一台主机master，一台或多台从机slaver。master主机数据更新后根据配置和策略，自动同步到slaver从机，Master以写为主，Slave以读为主.
+一、主从复制的环境搭..." />
+    <meta name="keywords" content="redis" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Redis（五）主从复制
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-17
+              </span>
+              <span>
+                7 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/73TYNIJQh/" class="post-tag">
+                  # redis
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>redis的主从复制概念和MySQL的主从复制大概类似。一台主机master，一台或多台从机slaver。master主机数据更新后根据配置和策略，自动同步到slaver从机，Master以写为主，Slave以读为主.</p>
+<p><strong>一、主从复制的环境搭建：</strong></p>
+<p>例如使用一主二仆的配置：<br>
+在虚拟机中利用一台机器模拟三台机器，端口号分别为8000，8001，8002。让8000为主机master，8001、8002为从机slaver。</p>
+<pre><code>1、先将原来的redis.conf复制三份
+2、修改redis.conf中的port端口、pid文件名、日志文件名、rdb文件名
+3、如果redis设置了密码的话，还需要将设置 requirepass &lt;密码&gt;。如果主机设置了密码的话，从机还需要配置masterauth&lt;密码&gt;,否则主机无法识别到从机。
+4、分别打开三个窗口，启动对应端口的redis服务。
+</code></pre>
+<p>使用命令 <code>info replication</code>查看三个机器的角色：</p>
+<pre><code># 三台机器都是这个状态
+127.0.0.1:8000&gt; info replication
+# 角色是master主机
+role:master
+# 从机个数为0
+connected_slaves:0
+</code></pre>
+<p>可以看出，三个机器都是主机状态，并不是从机状态。</p>
+<p>选择8001和8002作为从机：</p>
+<pre><code># 8001 端口
+127.0.0.1:8001&gt; SLAVEOF 127.0.0.1 8000
+
+# 8002 端口
+127.0.0.1:8002&gt; SLAVEOF 127.0.0.1 8000
+</code></pre>
+<p>再次查看三台机器状态：</p>
+<pre><code># 主机
+127.0.0.1:8000&gt; info replication
+role:master # 角色：主机
+connected_slaves:2 #连接的从机个数，以及从机IP和端口
+slave0:ip=127.0.0.1,port=8001,state=online,offset=98,lag=1
+slave1:ip=127.0.0.1,port=8002,state=online,offset=98,lag=1
+
+# 从机1
+127.0.0.1:8001&gt; info replication
+role:slave # 角色：从机
+master_host:127.0.0.1 # 主机的IP和端口
+master_port:8000
+
+# 从机2
+127.0.0.1:8002&gt; info replication
+role:slave # 角色：从机
+master_host:127.0.0.1 # 主机的IP和端口
+master_port:8000
+</code></pre>
+<p>redis主从复制有全局复制和增量复制两种：</p>
+<pre><code>全局复制：从机会把主机之前的内容全部复制一份，可以在从机中读取到主机的内容
+增量复制：当主机新写入数据时，从机将会把数据复制过来。
+</code></pre>
+<p>读写分离：从机不能写内容，只能读</p>
+<pre><code>127.0.0.1:8001&gt; set slave 5555
+(error) READONLY You can't write against a read only replica.
+</code></pre>
+<p>从机挂掉，再重新连上主机后，从机会复制主机里的内容<br>
+主机挂掉，从机原地等待。</p>
+<p><strong>二、复制原理：</strong></p>
+<pre><code>1、从服务器连接上主服务器之后，从服务器向主服务器发送一个进行同步的消息`psync`
+2、主服务器接收到这个消息之后，会把主服务器中的数据先进行持久化操作，生成rdb文件，把rdb文件发送给从服务器，从服务器拿到这个rdb文件中进行数据读取，最后完成复制。
+3、每次主服务器进行写操作后，和从服务器进行数据同步
+
+「①」slave发送psync，由于是第一次复制，不知道master的runid，自然也不知道offset，所以发送psync ？ -1
+「②」master收到请求，发送master的服务器运行id`runid`和偏移量`offset`给从节点。
+「③」从节点slave保存master的信息
+「④」主节点bgsave保存rdb文件
+「⑤」主机点发送rdb文件
+并且在「④」和「⑤」的这个过程中产生的数据，会写到复制缓冲区repl_back_buffer之中去。
+「⑥」主节点发送上面两个步骤产生的buffer到从节点slave
+「⑦」从节点清空原来的数据，如果它之前有数据，那么久会清空数据
+「⑧」从节点slave把rdb文件的数据装载进自身
+</code></pre>
+<p><strong>三、薪火相传与反客为主：</strong></p>
+<p>薪火相传就是指，一个master主服务器，他拥有两个slaver从服务器，而从服务器还具有他自己的从服务器，就叫薪火相传。</p>
+<p>反客为主就是指，当主服务器宕机之后，从服务器会取代主服务器成为主服务器，而当原来的主服务器再连接回来的时候，只能成为现有主服务器的从服务器。</p>
+<p>使用<code>slaveof no one</code>命令便可将从机强制变为主机。</p>
+<p><strong>四、哨兵模式：</strong></p>
+<p>哨兵模式也可以称为自动化的反客为主。<br>
+所谓的哨兵模式，就是在传统的主从复制的基础上，提供一个哨兵节点，用来监控主机的状态，如果主机宕机之后，哨兵节点就会自动的将任意随机的一个从机变成主机。<br>
+哨兵模式的搭建：<br>
+先新建一个conf配置文件<br>
+只需在里面写上两句内容即可：</p>
+<pre><code># 哨兵sentinel监控的redis主节点的 
+## ip：主机ip地址
+## port：哨兵端口号
+## master-name：可以自己命名的主节点名字（只能由字母A-z、数字0-9 、这三个字符&quot;.-_&quot;组成。）
+## quorum：当这些quorum个数sentinel哨兵认为master主节点失联 那么这时 客观上认为主节点失联了
+# sentinel monitor &lt;master-name&gt; &lt;ip&gt; &lt;redis-port&gt; &lt;quorum&gt;
+
+sentinel monitor mymaster 127.0.0.1 8000 1
+
+# 当在Redis实例中开启了requirepass &lt;foobared&gt;，所有连接Redis实例的客户端都要提供密码。
+# sentinel auth-pass &lt;master-name&gt; &lt;password&gt;
+
+sentinel auth-pass mymaster 123456
+</code></pre>
+<p>启动redis-sentinel服务：<br>
+<img src="https://Git0814.github.io/post-images/1668686288893.png" alt="" loading="lazy"><br>
+可以看到启动端口为26379</p>
+<p>如果当我们shutdown掉主机8000之后则会出现：</p>
+<pre><code>65136:X 17 Nov 2022 07:00:41.558 # +failover-end master mymaster 127.0.0.1 8000
+65136:X 17 Nov 2022 07:00:41.558 # +switch-master mymaster 127.0.0.1 8000 127.0.0.1 8002
+65136:X 17 Nov 2022 07:00:41.558 * +slave slave 127.0.0.1:8001 127.0.0.1 8001 @ mymaster 127.0.0.1 8002
+65136:X 17 Nov 2022 07:00:41.558 * +slave slave 127.0.0.1:8000 127.0.0.1 8000 @ mymaster 127.0.0.1 8002
+</code></pre>
+<p>从第一行可以看出8000端口的服务关闭，从第二行可以看出选择了8002端口的从机作为新的主机。</p>
+<p>此时再查看8002端口的数据：</p>
+<pre><code>127.0.0.1:8002&gt; info replication
+# Replication
+role:master
+connected_slaves:1
+slave0:ip=127.0.0.1,port=8001,state=online,offset=14139,lag=1
+</code></pre>
+<p>可以看出8002端口已成为了主机，8001成为了他的从机。<br>
+重新启动8000端口服务：查看数据可知，该端口已经成为了8002端口的新的从机。</p>
+<pre><code>127.0.0.1:8000&gt; info replication
+# Replication
+role:slave
+master_host:127.0.0.1
+master_port:8002
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/gridea-wu-fa-tong-bu-de-wen-ti/">
+              <h3 class="post-title">
+                Gridea无法同步的问题
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

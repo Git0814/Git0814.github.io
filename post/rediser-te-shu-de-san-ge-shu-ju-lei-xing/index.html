@@ -1,0 +1,294 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redis（二）特殊的三个数据类型 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Redis（二）特殊的三个数据类型 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="1、Bitmap
+Bitmap：位存储
+Bitmap 即位图数据结构，都是操作二进制位来进行记录，只有0 和 1 两个状态。
+Bitmap可以用来做什么：
+比如想要统计当天的打卡数等
+0表示未访问，1表示已访问
+如果存储一个用户一年的打卡状..." />
+    <meta name="keywords" content="redis" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Redis（二）特殊的三个数据类型
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-13
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/73TYNIJQh/" class="post-tag">
+                  # redis
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p><strong>1、Bitmap</strong><br>
+Bitmap：位存储<br>
+Bitmap 即位图数据结构，都是操作二进制位来进行记录，只有0 和 1 两个状态。</p>
+<p>Bitmap可以用来做什么：<br>
+比如想要统计当天的打卡数等<br>
+0表示未访问，1表示已访问<br>
+如果存储一个用户一年的打卡状态需要多少内存呢？ 365 天 = 365 bit，  1字节 = 8bit， 所以只需要46 个字节左右就能存储下一年的数据，内存空间的利用效率大幅提高。</p>
+<p>相关的命令操作：</p>
+<p>例如存储2022/11/13这天的用户是否打卡：</p>
+<pre><code>    127.0.0.1:6379&gt; setbit user:20221113 1 1
+    (integer) 0
+    127.0.0.1:6379&gt; setbit user:20221113 0 0
+    (integer) 0
+    127.0.0.1:6379&gt; setbit user:20221113 2 1
+    (integer) 0
+    127.0.0.1:6379&gt; setbit user:20221113 3 0
+    (integer) 0
+    127.0.0.1:6379&gt; setbit user:20221113 4 0
+    (integer) 0
+    127.0.0.1:6379&gt; setbit user:20221113 5 1
+    (integer) 0
+</code></pre>
+<p>查看某个用户当天是否打卡：</p>
+<pre><code>    127.0.0.1:6379&gt; getbit user:20221113 3
+    (integer) 0
+    127.0.0.1:6379&gt; getbit user:20221113 5
+    (integer) 1
+</code></pre>
+<p>查看当天打卡的用户数量：</p>
+<pre><code>    127.0.0.1:6379&gt; bitcount user:20221113
+    (integer) 3
+</code></pre>
+<p><strong>2、HyperLogLogs</strong><br>
+HyperLogLogs：基数统计<br>
+什么是基数：例如在集合A中，A={1,1,2,3,4,4,5}，基数（不重复的元素）=2,3,5</p>
+<p>HyperLogLogs可以用来做什么：<br>
+比如当想要统计一个网站的访问量时，一个人访问一个网站多次，但是还是算作一个人<br>
+传统方式：使用 set 来存储访问的人的 id，但是这样 set 集合中会存储大量的用户 id，我们的目的是计数，不是存储 id。<br>
+现在解决方案：使用 hyperloglog 数据类型，因为它不是真正的添加元素到 HLL 中，占用内存很小。</p>
+<p>相关命令操作：</p>
+<pre><code>    127.0.0.1:6379&gt; pfadd pop1 1
+    (integer) 1
+    127.0.0.1:6379&gt; pfadd pop1 2
+    (integer) 1
+    127.0.0.1:6379&gt; pfadd pop1 1
+    (integer) 0
+    127.0.0.1:6379&gt; pfadd pop1 3 4 5 6
+    (integer) 1
+    127.0.0.1:6379&gt; pfcount pop1  #统计元素的基数数量
+    (integer) 6
+</code></pre>
+<p>这里的pop1实际上只添加进去了不重复的数据1,2,3,4,5,6。并没有将重复的数据<code>1</code>添加进去，所以一共只有6个数据</p>
+<pre><code>    127.0.0.1:6379&gt; pfadd pop2 c j k l m e g a		# 创建第二组元素
+    (integer) 1
+    127.0.0.1:6379&gt; pfcount  pop2 
+    (integer) 8
+    127.0.0.1:6379&gt; pfmerge pop3 pop1  pop2 		# 合并两组： pop1  pop2-&gt; pop3 并集
+    OK
+</code></pre>
+<p><strong>3、geospatial</strong><br>
+这个数据类型可以存储地球上地理位置的经纬度信息，能够通过经纬度信息计算出两地之间的距离，能够通过坐标和半径的方式找出范围内的其他地理位置</p>
+<p>geospatial可以用来做什么：<br>
+如果你的程序需要使用 附近的人 的功能，使用 geospatial 数据类型就能做到。</p>
+<p>相关操作指令：</p>
+<p>添加城市信息：geoadd</p>
+<pre><code>    127.0.0.1:6379&gt; geoadd china:city 121.47 31.43 shanghai
+    (integer) 1
+    127.0.0.1:6379&gt; geoadd china:city 117.66 30.15 yaan
+    (integer) 1
+</code></pre>
+<p>获取指定的成员的经度和纬度：geopos</p>
+<pre><code>    127.0.0.1:6379&gt; geopos china:city shanghai
+    1) 1) &quot;121.47000163793563843&quot;
+    2) &quot;31.43000121283547088&quot;
+    127.0.0.1:6379&gt; geopos china:city yaan
+    1) 1) &quot;117.65999883413314819&quot;
+    2) &quot;30.14999997874437554&quot;
+</code></pre>
+<p>获取两个成员之间的直线距离：geodist<br>
+单位：m（米） km（公里） mi（英里） ft（英尺）</p>
+<pre><code>    127.0.0.1:6379&gt; geodist china:city shanghai yaan km  #如果这里不带单位的话，则默认为m
+    &quot;390.8595&quot;
+</code></pre>
+<p>给定一个坐标作为圆心，给定一个距离作为半径，扫描这个圆范围内的地点：georadius</p>
+<pre><code>127.0.0.1:6379&gt; geoadd china:city 116.48 39.99 beijing
+(integer) 1
+127.0.0.1:6379&gt; geoadd china:city 121.47 31.23 shanghai
+(integer) 1
+127.0.0.1:6379&gt; geoadd china:city 104.06 30.65 chengdu
+(integer) 1
+127.0.0.1:6379&gt; geoadd china:city 106.50 29.53 chongqing
+(integer) 1
+127.0.0.1:6379&gt; georadius china:city 100 30 1500 km  #以100 30这个点范围1500公里内的所有城市
+1) &quot;chengdu&quot;
+2) &quot;chongqing&quot;
+
+127.0.0.1:6379&gt; georadius china:city 110 30 1000 km withcoord withdist count 2  #以110 30 这个点范围内1000km的两个城市，并且显示坐标
+1) 1) &quot;chongqing&quot;
+2) &quot;341.9374&quot;
+3) 1) &quot;106.49999767541885376&quot;
+    2) &quot;29.52999957900659211&quot;
+2) 1) &quot;chengdu&quot;
+2) &quot;574.7802&quot;
+3) 1) &quot;104.05999749898910522&quot;
+    2) &quot;30.6499990746355806&quot;
+</code></pre>
+<p>显示与指定成员一定半径范围内的其他成员：georadiusbymember</p>
+<pre><code>127.0.0.1:6379&gt; georadiusbymember china:city chongqing 1500 km
+1) &quot;chengdu&quot;
+2) &quot;chongqing&quot;
+3) &quot;shanghai&quot;
+4) &quot;beijing&quot;
+127.0.0.1:6379&gt; georadiusbymember china:city chongqing 500 km
+1) &quot;chengdu&quot;
+2) &quot;chongqing&quot;
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/redisyi-shu-ju-lei-xing/">
+              <h3 class="post-title">
+                Redis（一）数据类型
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

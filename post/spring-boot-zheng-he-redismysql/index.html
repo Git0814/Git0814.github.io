@@ -1,0 +1,540 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>spring boot整合redis+mysql | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="spring boot整合redis+mysql | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="一般情况下，redis作为系统数据库的缓存，如果直接访问数据库的话，往往会造成访问速度过慢，或者是当访问量突增的时候，数据库往往会面临宕机的风险。接下来就是一个关于spring boot整合redis+mysql的简单总结示例。
+1、先设计..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              spring boot整合redis+mysql
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-12-03
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>一般情况下，redis作为系统数据库的缓存，如果直接访问数据库的话，往往会造成访问速度过慢，或者是当访问量突增的时候，数据库往往会面临宕机的风险。接下来就是一个关于spring boot整合redis+mysql的简单总结示例。</p>
+<p>1、先设计一个简单的数据库表：<br>
+<img src="https://Git0814.github.io/post-images/1670034669443.png" alt="" loading="lazy"><br>
+2、创建一个spring boot项目，其中引入的依赖如下：<br>
+<dependencies><br>
+<dependency><br>
+<groupId>org.springframework.boot</groupId><br>
+<artifactId>spring-boot-starter-data-jdbc</artifactId><br>
+</dependency></p>
+<pre><code>    &lt;dependency&gt;
+        &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;2.3.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.baomidou&lt;/groupId&gt;
+        &lt;artifactId&gt;mybatis-plus-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;3.4.3&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.mysql&lt;/groupId&gt;
+        &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+        &lt;artifactId&gt;druid&lt;/artifactId&gt;
+        &lt;version&gt;1.2.8&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;redis.clients&lt;/groupId&gt;
+        &lt;artifactId&gt;jedis&lt;/artifactId&gt;
+        &lt;version&gt;4.3.1&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+<p>3、在application.yml中写入MySQL配置信息，redis配置信息：</p>
+<pre><code>spring:
+    datasource:
+        url: jdbc:mysql://localhost:3306/redisdemo?serverTimezone=UTC
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: root
+        password: 123456
+        type: com.alibaba.druid.pool.DruidDataSource
+        # 初始化大小，最小，最大
+        initialSize: 5
+        minIdle: 5
+        maxActive: 200
+        # 配置获取连接等待超时的时间
+        maxWait: 60000
+        # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+        timeBetweenEvictionRunsMillis: 60000
+        # 配置一个连接在池中最小生存的时间，单位是毫秒
+        minEvictableIdleTimeMillis: 300000
+
+    redis:
+        host: 192.168.164.128
+        port: 6379
+        password: 123456
+        jedis:
+        pool:
+            #连接池最大连接数（使用负值表示没有限制）
+            max-active: 30
+            #连接池中的最大空闲连接
+            max-idle: 5
+            #连接池最大阻塞等待时间（使用负值表示没有限制）
+            max-wait: -1
+            #连接池中的最小空闲连接
+            min-idle: 5
+</code></pre>
+<p>4、书写数据库实体类，数据库查询mapper和mapper.xml以及查询的userservice</p>
+<pre><code>实体类User：
+
+    package com.redis.domain;
+
+    import lombok.AllArgsConstructor;
+    import lombok.Data;
+    import lombok.NoArgsConstructor;
+
+    /**
+    * @author PandaCode.W
+    */
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class User {
+
+        private String id;
+        private String username;
+        private String password;
+        private String phone;
+        private String email;
+
+    }
+
+mapper：（由于此处只是做一个简单演示，使用就只写一个查询功能）
+
+    package com.redis.mapper;
+
+    import com.redis.domain.User;
+    import org.apache.ibatis.annotations.Mapper;
+
+    /**
+    * @author PandaCode.W
+    */
+
+    @Mapper
+    public interface UserDao {
+
+        User selectUserById(Object Id);
+
+    }
+
+mapper.xml:(需要注意的是，这里最好将mapper.xml放置到resources文件下，并且目录路径与userdao保持一致)
+
+    &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+    &lt;!DOCTYPE mapper
+            PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;
+            &quot;https://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;
+    &lt;mapper namespace=&quot;com.redis.mapper.UserDao&quot;&gt;
+
+        &lt;select id=&quot;selectUserById&quot; resultType=&quot;com.redis.domain.User&quot;&gt;
+            select id,username,password,phone,email from user where id = #{IdOrName}
+        &lt;/select&gt;
+
+    &lt;/mapper&gt;
+
+最后就是书写userservice：
+
+    package com.redis.service;
+
+    import com.redis.domain.User;
+    import com.redis.mapper.UserDao;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Service;
+
+    /**
+    * @author PandaCode.W
+    */
+
+    @Service
+    public class UserService {
+
+
+        private UserDao userDao;
+
+        @Autowired
+        public void setUserDao(UserDao userDao) {
+            this.userDao = userDao;
+        }
+
+        public User loadUserByUserID(Object value){
+            User user = userDao.selectUserById(value);
+            return user;
+        }
+
+    }
+</code></pre>
+<p>5、此时关于数据库的查询准备工作就已经做完，接下来写一个controller类来进行测试：</p>
+<pre><code>@RestController
+public class SelectController {
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping(&quot;/select&quot;)
+    public String select(@PathParam(&quot;value&quot;) Object value){
+        User user = userService.loadUserByUserID(value);
+        return user.toString();
+    }
+
+
+}
+</code></pre>
+<p>直接使用postman进行测试：<br>
+<img src="https://Git0814.github.io/post-images/1670035341253.png" alt="" loading="lazy"><br>
+可以从返回结果看出查询已经成功。</p>
+<p>6、RedisConfig配置<br>
+通过@Bean的方式配置RedisTemplate，主要是设置RedisConnectionFactory以及各种类型数据的Serializer。<br>
+为什么需要序列化：任何存储都需要序列化。只不过常规你在用DB一类存储的时候，这个事情DB帮你在内部搞定了（直接把SQL带有类型的数据转换成内部序列化的格式，存储；读取时再解析出来）。而Redis并不会帮你做这个事情。</p>
+<pre><code>@EnableCaching
+@Configuration
+public class RedisConfig {
+    /**
+    * 配置redisTemplate针对不同key和value场景下不同序列化的方式
+    *
+    * @param factory Redis连接工厂
+    * @return
+    */
+    @Primary
+    @Bean(name = &quot;redisTemplate&quot;)
+    public RedisTemplate&lt;String, Object&gt; redisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate&lt;String, Object&gt; template = new RedisTemplate&lt;&gt;();
+        template.setConnectionFactory(factory);
+        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+        template.setKeySerializer(stringRedisSerializer);
+        template.setHashKeySerializer(stringRedisSerializer);
+        Jackson2JsonRedisSerializer redisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        template.setValueSerializer(redisSerializer);
+        template.setHashValueSerializer(redisSerializer);
+        template.afterPropertiesSet();
+        return template;
+    }
+}
+</code></pre>
+<p>7、编写一个RedisUtil工具类，这样更便于redisTemplate的使用。</p>
+<pre><code>@Component
+public class RedisUtils {
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    /**
+    * 读取缓存
+    * 
+    * @param key
+    * @return
+    */
+    public String get(final String key) {
+        return (String) redisTemplate.opsForValue().get(key);
+    }
+
+    /**
+    * 写入字符串缓存
+    */
+    public boolean setString(final String key, String value) {
+        boolean result = false;
+        try {
+            redisTemplate.opsForValue().set(key, value);
+            result = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+    * 得到hash缓存
+    */
+    public Map getHash(final String key){
+        return redisTemplate.opsForHash().entries(key);
+    }
+
+    /**
+    * 写入哈希缓存
+    */
+    public boolean setHash(final User user){
+        boolean result = false;
+        try{
+            String userid = user.getId();
+            HashMap&lt;String, String&gt; map = new HashMap&lt;&gt;();
+            map.put(&quot;id&quot;,user.getId());
+            map.put(&quot;username&quot;,user.getUsername());
+            map.put(&quot;password&quot;,user.getPassword());
+            map.put(&quot;email&quot;,user.getEmail());
+            map.put(&quot;phone&quot;,user.getPhone());
+            redisTemplate.opsForHash().putAll(userid,map);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+
+    }
+    /**
+    * 更新缓存
+    */
+    public boolean getAndSet(final String key, String value) {
+        boolean result = false;
+        try {
+            redisTemplate.opsForValue().getAndSet(key, value);
+            result = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+    * 删除缓存
+    */
+    public boolean delete(final String key) {
+        boolean result = false;
+        try {
+            redisTemplate.delete(key);
+            result = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+}
+</code></pre>
+<p>8、写一个简单的rediscontroller测试redis的连接情况</p>
+<pre><code>@RestController
+public class RedisController {
+
+    @Autowired
+    private RedisUtils redisUtils;
+
+    @GetMapping(&quot;/set&quot;)
+    public String setValue(@RequestParam(&quot;key&quot;) String key, @RequestParam(&quot;value&quot;) String value){
+        redisUtils.setString(key, value);
+        return &quot;success&quot;;
+    }
+
+    @GetMapping(&quot;/delete&quot;)
+    public boolean getValue(@RequestParam(&quot;key&quot;)String key){
+        return redisUtils.delete(key);
+    }
+}
+</code></pre>
+<p>9、用postman进行测试：<br>
+<img src="https://Git0814.github.io/post-images/1670036843765.png" alt="" loading="lazy"><br>
+<img src="https://Git0814.github.io/post-images/1670036866564.png" alt="" loading="lazy"><br>
+可看出成功将这个数据存入redis缓存中。</p>
+<p>10、接下来就是最重要的将redis与mysql进行结合，模拟一个登录场景，先使用redis进行查询，当redis查询到结果时就直接返回结果，未查到时使用MySQL进行查询，MySQL查询到了数据就返回结果，并将结果存储进redis中，如果MySQL也未查询到结果那就返回错误。</p>
+<pre><code>@RestController
+public class RedisLoginController {
+
+    @Autowired
+    private RedisUtils redisUtils;
+    @Autowired
+    private UserService userService;
+
+    @GetMapping(&quot;/login&quot;)
+    public String selectInfo(@PathParam(&quot;/value&quot;)String value){
+        if (!redisUtils.getHash(value).isEmpty()){
+            System.out.println(redisUtils.getHash(value));
+            return &quot;通过redis查找成功!&quot;;
+
+        }else{
+            if(userService.loadUserByUserID(value) != null){
+                User user = userService.loadUserByUserID(value);
+                System.out.println(user.getId().getClass());
+                redisUtils.setHash(user);
+                return &quot;通过sql查找成功&quot;;
+
+            }else {
+                return &quot;无法找到结果查找失败&quot;;
+            }
+        }
+
+    }
+}
+</code></pre>
+<p>直接进行测试：<br>
+<img src="https://Git0814.github.io/post-images/1670037230171.png" alt="" loading="lazy"><br>
+当原本redis中没有这个内容时，可以看出使用了MySQL进行查询。<br>
+再对这个数据进行一次查询可以看出：<br>
+<img src="https://Git0814.github.io/post-images/1670037286434.png" alt="" loading="lazy"><br>
+此时数据已经存入了redis并且是通过redis进行查询的了。</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/mapperxml-wen-jian-fang-zhi-wei-zhi/">
+              <h3 class="post-title">
+                Mapper.xml文件放置位置
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

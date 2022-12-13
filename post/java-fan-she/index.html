@@ -1,0 +1,290 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java反射 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Java反射 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="一般构建对象的方法：
+例如有一个Cat类，构建cat对象只需要
+Car car = new Car（）；
+这种一般的构造方法可以称为正射。
+而什么是反射呢
+由百度百科得：Java的反射（reflection）机制是指在程序的运行状态中，可以..." />
+    <meta name="keywords" content="java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Java反射
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-10-23
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/LGe2oUFVT/" class="post-tag">
+                  # java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>一般构建对象的方法：<br>
+例如有一个Cat类，构建cat对象只需要<br>
+<code>Car car = new Car（）；</code><br>
+这种一般的构造方法可以称为正射。</p>
+<p>而什么是反射呢<br>
+由百度百科得：<strong>Java的反射（reflection）机制</strong>是指在程序的运行状态中，可以构造任意一个类的对象，可以了解任意一个对象所属的类，可以了解任意一个类的成员变量和方法，可以调用任意一个对象的属性和方法。这种动态获取程序信息以及动态调用对象的功能称为Java语言的反射机制。</p>
+<p>针对反射，我们需要了解一个Java程序具有三个阶段：<br>
+1、代码编译阶段 2、class类阶段 3、runtime运行阶段<br>
+<img src="https://Git0814.github.io/post-images/1666518465705.png" alt="" loading="lazy"></p>
+<p>Java 类的成员包括以下三类：属性字段、构造函数、方法。而反射的 API 也是与这几个成员相关的。</p>
+<pre><code>Field 类：提供有关类的属性信息，以及对它的动态访问权限。它是一个封装反射类的属性的类。
+Constructor 类：提供有关类的构造方法的信息，以及对它的动态访问权限。它是一个封装反射类的构造方法的类。
+Method 类：提供关于类的方法的信息，包括抽象方法。它是用来封装反射类方法的一个类。
+Class 类：表示正在运行的 Java 应用程序中的类的实例。
+Object 类：Object 是所有 Java 类的父类。所有对象都默认实现了 Object 类的方法。
+</code></pre>
+<p>接下来用一个简单例子映入反射概念<br>
+<img src="https://Git0814.github.io/post-images/1666518813721.png" alt="" loading="lazy"></p>
+<p>然后用反射的方法得到一个Class类：<br>
+<code>Class cls = Class.forName(&quot;com.reflect.Car&quot;);</code></p>
+<p>反射得到class类的方法一共有三种：</p>
+<pre><code>1.通过字符串获取Class对象，这个字符串必须带上完整路径名
+Class cls = Class.forName(&quot;com.reflect.Car&quot;);
+2.通过类的class属性
+Class cls2 = Car.class;
+3.通过对象的getClass()函数
+Car car = new Car();
+Class cls3 = car.getClass();
+</code></pre>
+<p>再通过方法newInstance获取这个实例对象：<br>
+<code>Object obj = cls.newInstance();</code></p>
+<pre><code>    //显示cls对象，是哪个类的class对象
+    System.out.println(cls);
+    //显示cls运行类型
+    System.out.println(cls.getClass());
+    对应得到结果
+    class com.reflect.Car
+    class java.lang.Class
+</code></pre>
+<p>接下来就可以使用对应方法获得该反射对象的属性字段，构造函数以及方法</p>
+<p>获取字段有两个 API：getDeclaredFields和getFields。他们的区别是:getDeclaredFields用于获取所有声明的字段，包括公有字段和私有字段，getFields仅用来获取公有字段.</p>
+<pre><code>// 1.获取所有声明的字段
+Field[] declaredFieldList = cls.getDeclaredFields();
+for (Field declaredField : declaredFieldList) {
+    System.out.println(&quot;declared Field: &quot; + declaredField);
+}
+// 2.获取所有公有的字段
+Field[] fieldList = cls.getFields();
+for (Field field : fieldList) {
+    System.out.println(&quot;field: &quot; + field);
+}
+</code></pre>
+<p>还可以用获取对应字段的方式通过反射给此赋值</p>
+<pre><code>    Field brand = cls.getField(&quot;brand&quot;);
+    //通过反射赋值
+    System.out.println(brand.get(obj));
+    brand.set(obj,&quot;GeeLY&quot;);
+    System.out.println(brand.get(obj));
+
+    输出结果为：
+    BYD
+    GeeLY
+</code></pre>
+<p>获取对应的私有属性private字段时，还需要压制Java对访问修饰符的检查</p>
+<pre><code>    //访问私有属性
+    Field price = cls.getDeclaredField(&quot;price&quot;);
+</code></pre>
+<p>获取构造方法同样包含了两个 API：用于获取所有构造方法的 getDeclaredConstructors和用于获取公有构造方法的getConstructors:</p>
+<pre><code>    Constructor[] declaredConstructors = cls.getDeclaredConstructors();
+    for (Constructor declaredConstructor : declaredConstructors) {
+            System.out.println(declaredConstructor);
+    }
+
+    得到结果为：
+    public com.reflect.Car()
+    public com.reflect.Car(java.lang.String,int,java.lang.String)
+
+    接下来将有参构造改为private：
+    Constructor[] constructors = cls.getConstructors();
+    for (Constructor constructor : constructors) {
+        System.out.println(constructor);
+    }
+
+    得到结果为：
+    public com.reflect.Car()
+</code></pre>
+<p>然后还可以得到该类的方法：</p>
+<pre><code>    Method declaredMethod = cls.getDeclaredMethod(&quot;drive&quot;);
+    declaredMethod.invoke(obj);
+</code></pre>
+<p>最后提一下我自己的一个观点：</p>
+<p>Class<Integer> int1 = int.class;<br>
+Class<Integer> int2 = Integer.TYPE;<br>
+System.out.println(int1.hashCode());<br>
+System.out.println(int2.hashCode());</p>
+<p>这样输出的int1和int2的hashcode都是相同的，所以我认为，基本数据类型的拆箱和装箱也是通过反射原理来进行实现的，不知说的是否正确。</p>
+<p>另外Integer中还值得一提的我认为就是：通过valueOf方法创建Integer对象的时候，如果数值在<code>[-128,127]</code>之间，便返回指向IntegerCache.cache中已经存在的对象的引用；否则创建一个新的Integer对象。<br>
+例如：</p>
+<pre><code>public class Main {
+public static void main(String[] args) {
+        Integer i1 = 100;
+        Integer i2 = 100;
+        Integer i3 = 200;
+        Integer i4 = 200;
+     
+        System.out.println(i1==i2);
+        System.out.println(i3==i4);
+    }
+}
+</code></pre>
+<p>输出结果为：<br>
+<code>true</code><br>
+<code>false</code></p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/mybatis-de-yi-ji-huan-cun-yu-er-ji-huan-cun/">
+              <h3 class="post-title">
+                Mybatis的一级缓存与二级缓存
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

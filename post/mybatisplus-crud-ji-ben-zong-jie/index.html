@@ -1,0 +1,219 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MybatisPlus      CRUD  基本总结 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="MybatisPlus      CRUD  基本总结 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="MyBatis-Plus (https://Git0814.github.io/post-images/1670920769062.png)
+在一个springboot项目中只需引入依赖
+&lt;dependency&gt;
+       ..." />
+    <meta name="keywords" content="mybatis-plus" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              MybatisPlus      CRUD  基本总结
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-12-13
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/7iBK5GtEm/" class="post-tag">
+                  # mybatis-plus
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>MyBatis-Plus (https://Git0814.github.io/post-images/1670920769062.png)</p>
+<p>在一个springboot项目中只需引入依赖</p>
+<pre><code>&lt;dependency&gt;
+        &lt;groupId&gt;com.baomidou&lt;/groupId&gt;
+        &lt;artifactId&gt;mybatis-plus-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;最新版本&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>便能开启MybatisPlus。</p>
+<p><strong>一、MybatisPlus  CRUD操作</strong></p>
+<p>mybatis-plus 提供两种包含预定义增删改查操作的接口<br>
+：1.<code>Mapper的CRUD</code>      2.<code>Service的CRUD</code></p>
+<pre><code>com.baomidou.mybatisplus.core.mapper.BaseMapper
+com.baomidou.mybatisplus.extension.service.IService
+</code></pre>
+<p><em><strong>1、Mapper的CRUD</strong></em><br>
+通用 CRUD 封装BaseMapper (opens new window)接口，为 Mybatis-Plus 启动时自动解析实体表关系映射转换为 Mybatis 内部对象注入容器，所以需要在写UserDao接口时实现BaseMapper接口。</p>
+<pre><code>@Mapper
+public interface UserDao extends BaseMapper&lt;entity.Student&gt; {
+}
+</code></pre>
+<p>BaseMapper接口中写了常用的SQL数据操作语句，例如：<br>
+<img src="https://Git0814.github.io/post-images/1670921275225.png" alt="" loading="lazy"><br>
+此时可以直接使用UserDao来进行SQL操作。</p>
+<p><em><strong>2、Service的CRUD</strong></em><br>
+通用 Service CRUD 封装IService (opens new window)接口，进一步封装 CRUD 采用 get 查询单行 remove 删除 list 查询集合 page 分页 前缀命名方式区分 Mapper 层避免混淆。</p>
+<p>IService的实现类ServiceImpl：<br>
+public class StudentServiceImpl extends ServiceImpl&lt;UserDao, User&gt; implements StudentService {<br>
+}</p>
+<p>继承ServiceImpl需要放入两个泛型。一个是之前写的UserDao，另一个是实体类，也就是告诉ServiceImpl我们需要处理的User实体类。</p>
+<pre><code>public class ServiceImpl&lt;M extends BaseMapper&lt;T&gt;, T&gt; implements IService&lt;T&gt; {
+    
+    protected Log log = LogFactory.getLog(this.getClass());
+    @Autowired
+    protected M baseMapper;
+    protected Class&lt;T&gt; entityClass = this.currentModelClass();
+    protected Class&lt;T&gt; mapperClass = this.currentMapperClass();
+
+/*
+*
+*/
+}
+</code></pre>
+<p>通过源码可以看出，ServiceImpl有个成员变量BaseMapper，他被@Autowired注解修饰也就是说这个成员变量是自动注入的，而我们传入的UserDao继承自BaseMapper，所以传入Userdao接口就是为了让这个实现类去自动注入我们的UserDao。而第二个泛型传入User，是因为我们告诉ServiceImpl我们要处理的User类，ServiceImpl再去调用UserDao告诉UserDao我要你处理的User。</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/spring-boot-zheng-he-redismysql/">
+              <h3 class="post-title">
+                spring boot整合redis+mysql
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

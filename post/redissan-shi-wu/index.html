@@ -1,0 +1,324 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redis（三）事务 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Redis（三）事务 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="事务提供了一种“将多个命令打包， 然后一次性、按顺序地执行”的机制， 并且事务在执行的期间不会主动中断 —— 服务器在执行完事务中的所有命令之后， 才会继续处理其他客户端的其他命令。
+Redis中的事务命令：
+（1）multi
+Redis使..." />
+    <meta name="keywords" content="redis" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Redis（三）事务
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-14
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/73TYNIJQh/" class="post-tag">
+                  # redis
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>事务提供了一种“将多个命令打包， 然后一次性、按顺序地执行”的机制， 并且事务在执行的期间不会主动中断 —— 服务器在执行完事务中的所有命令之后， 才会继续处理其他客户端的其他命令。</p>
+<p>Redis中的事务命令：</p>
+<pre><code>（1）multi
+Redis使用 MULTI 命令标记事务开始，它总是返回OK。MULTI执行之后，客户端可以发送多条命令，Redis会把这些命令保存在队列当中，而不是立刻执行这些命令。
+（2）exec
+调用EXEC 命令，执行队列中的所有命令，执行完成后事务结束。
+（3）discard
+调用 DISCARD 会清空事务队列并退出事务。
+（4）watch
+WATCH 命令用于在事务开始之前监视任意数量的键： 当调用 EXEC 命令执行事务时， 如果任意一个被监视的键已经被其他客户端修改了， 那么整个事务不再执行， 直接返回失败。
+&lt;-------------------------------------------------------------&gt;
+127.0.0.1:6379&gt; multi
+OK
+127.0.0.1:6379(TX)&gt; set k1 v1
+QUEUED
+127.0.0.1:6379(TX)&gt; set k2 v2
+QUEUED
+127.0.0.1:6379(TX)&gt; keys *
+QUEUED
+127.0.0.1:6379(TX)&gt; exec
+1) OK
+2) OK
+3) 1) &quot;k1&quot;
+2) &quot;k2&quot;
+&lt;-------------------------------------------------------------&gt;
+127.0.0.1:6379&gt; multi
+OK
+127.0.0.1:6379(TX)&gt; set a1 b1
+QUEUED
+127.0.0.1:6379(TX)&gt; set a2 b2
+QUEUED
+127.0.0.1:6379(TX)&gt; discard
+OK
+127.0.0.1:6379&gt; 
+</code></pre>
+<p>一个事务从开始到执行会经历以下三个阶段：</p>
+<ul>
+<li>
+<p>1、开始事务。</p>
+<p>MULTI 命令：<br>
+这个命令唯一的作用就是打开客户端的REDIS_MULTI 选项，让客户端从非事务状态切换到事务状态。</p>
+</li>
+<li>
+<p>2、命令入队。</p>
+<p>当客户端处于非事务状态下时， 所有发送给服务器端的命令都会立即被服务器执行；<br>
+但是， 当客户端进入事务状态之后， 服务器在收到来自客户端的命令时， 不会立即执行命令， 而是将这些命令全部放进一个事务队列里， 然后返回 QUEUED ， 表示命令已入队。</p>
+<p>事务队列是一个数组， 每个数组项是都包含三个属性：</p>
+<ul>
+<li>要执行的命令（cmd）。</li>
+<li>命令的参数（argv）。</li>
+<li>参数的个数（argc）。</li>
+</ul>
+</li>
+<li>
+<p>3、执行事务。</p>
+<p>当客户端进入事务状态之后， 客户端发送的命令就会被放进事务队列里。但并不是所有的命令都会被放进事务队列， 如EXEC 、 DISCARD 、 MULTI 和 WATCH 这四个命令。当这四个命令从客户端发送到服务器时， 它们会像客户端处于非事务状态一样， 直接被服务器执行。</p>
+<p>如果客户端正处于事务状态， 那么当 EXEC 命令执行时， 服务器根据客户端所保存的事务队列， 以先进先出（FIFO）的方式执行事务队列中的命令： 最先入队的命令最先执行， 而最后入队的命令最后执行。</p>
+</li>
+</ul>
+<p>事务可能会遇到两种类型的命令错误：</p>
+<p>在调用 EXEC 之前出错，命令加入队列失败。例如，命令的参数个数不符，或者内存补足。<br>
+命令可能在执行 EXEC 之后失败，例如，对错误值类型的key执行操作（像在字符串值上执行列表操作）。</p>
+<pre><code>队列（组队）中事务失败
+127.0.0.1:6379&gt; multi
+OK
+127.0.0.1:6379(TX)&gt; set a1 b1
+QUEUED
+127.0.0.1:6379(TX)&gt; set a2 b2
+QUEUED
+127.0.0.1:6379(TX)&gt; set b3
+(error) ERR wrong number of arguments for 'set' command
+127.0.0.1:6379(TX)&gt; exec
+(error) EXECABORT Transaction discarded because of previous errors.
+
+
+执行过程中事务失败
+127.0.0.1:6379&gt; multi
+OK
+127.0.0.1:6379(TX)&gt; set c1 v1
+QUEUED
+127.0.0.1:6379(TX)&gt; incr c1
+QUEUED
+127.0.0.1:6379(TX)&gt; set c2 v2
+QUEUED
+127.0.0.1:6379(TX)&gt; exec
+1) OK
+2) (error) ERR value is not an integer or out of range
+3) OK
+127.0.0.1:6379&gt; get c2
+&quot;v2&quot;
+</code></pre>
+<p>事务命令和普通命令的区别：</p>
+<ul>
+<li>
+<p>非事务状态下的命令以单个命令为单位执行，前一个命令和后一个命令的客户端不一定是同一个；<br>
+而事务状态则是以一个事务为单位，执行事务队列中的所有命令：除非当前事务执行完毕，否则服务器不会中断事务，也不会执行其他客户端的其他命令。</p>
+</li>
+<li>
+<p>在非事务状态下，执行命令所得的结果会立即被返回给客户端；<br>
+而事务则是将所有命令的结果集合到回复队列，再作为 EXEC 命令的结果返回给客户端。</p>
+</li>
+</ul>
+<p>Watch命令：</p>
+<pre><code>客户端A
+127.0.0.1:6379&gt; watch ticket
+OK
+127.0.0.1:6379&gt; multi
+OK
+127.0.0.1:6379(TX)&gt; set ticket 100
+QUEUED
+127.0.0.1:6379(TX)&gt; incrby ticket 13
+QUEUED
+127.0.0.1:6379(TX)&gt; exec
+1) OK
+2) (integer) 113
+
+客户端B
+127.0.0.1:6379&gt; watch ticket
+OK
+127.0.0.1:6379&gt; multi
+OK
+127.0.0.1:6379(TX)&gt; incrby ticket 13
+QUEUED
+127.0.0.1:6379(TX)&gt; exec
+(nil)
+</code></pre>
+<p>当客户端A和客户端B都同时watch一个key：ticket时，当A执行了 <code>incrby ticket 13</code> 加13操作后，B客户端再想执行<code>incrby ticket 13</code>时，Redis 会发现 ticket 这个被监视的键已经被修改， 因此客户端 B 的事务不会被执行，而是直接返回失败。</p>
+<p>Redis事务的特性：</p>
+<p>在传统的关系式数据库中，常常用 ACID 性质来检验事务功能的安全性。<br>
+Redis 事务保证了其中的一致性（C）和隔离性（I），但并不保证原子性（A）和持久性（D）。</p>
+<p>关于Redis事务不满足原子性：<br>
+我认为当在执行事务阶段，如果前期命令入队阶段，有一个命令不存在语法错误，而存在运行错误时，redis除执行中出现错误的命令外，其他命令都能正常执行，所以不满足原子性这个特性。</p>
+<pre><code>127.0.0.1:6379&gt; multi
+OK
+127.0.0.1:6379(TX)&gt; set c1 v1
+QUEUED
+127.0.0.1:6379(TX)&gt; incr c1
+QUEUED
+127.0.0.1:6379(TX)&gt; set c2 v2
+QUEUED
+127.0.0.1:6379(TX)&gt; exec
+1) OK
+2) (error) ERR value is not an integer or out of range
+3) OK
+127.0.0.1:6379&gt; get c2
+&quot;v2&quot;
+</code></pre>
+<p>通过这段代码可以看出，<code>127.0.0.1:6379(TX)&gt; incr c1</code>这段命令不存在语法错误，但是在运行时会产生错误，所以redis并未执行这个命令，而是跳过这个命令直接去执行了下一个命令，并成功执行。所以不满足原子性。</p>
+<p>Redis事务不满足一致性。一致性是事务执行前后都有数据的一致，而Redis不支持回滚。</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/rediser-te-shu-de-san-ge-shu-ju-lei-xing/">
+              <h3 class="post-title">
+                Redis（二）特殊的三个数据类型
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

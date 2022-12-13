@@ -1,0 +1,177 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mapper.xml文件放置位置 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Mapper.xml文件放置位置 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="有人习惯把mapper.xml文件放置到java文件夹中，和mapper的interface放在一起便于查看。——————没错正是在下。
+但是今天在springsecurity的自定义数据源登陆查数据源的时候，却产生了
+Invalid bo..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Mapper.xml文件放置位置
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-23
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>有人习惯把mapper.xml文件放置到java文件夹中，和mapper的interface放在一起便于查看。——————没错正是在下。</p>
+<p>但是今天在springsecurity的自定义数据源登陆查数据源的时候，却产生了</p>
+<pre><code>Invalid bound statement (not found): com.example.security.mapper.UserDao.loadUserByUsername
+</code></pre>
+<p>的错误。经过一番检查之后，发现如果将这两个文件放在一起的时候，springboot默认的打包方法不会把java文件夹下的xml文件打进来，会造成mybatis找不到xml文件。<img src="https://Git0814.github.io/post-images/1669207558826.png" alt="" loading="lazy"></p>
+<p>所以此时我们只需要将mapper.xml文件移动到resources文件夹中，并且将其放到和UserDao相同的文件路径下。在resource文件夹中创建多个文件夹时需要注意分隔符不能使用 <code>.</code> 而要使用<code>\</code>。因为在resource文件夹中，如果使用 . 来创建的话，会默认将文件夹变成一个文件夹。例如com.example.security.mapper此时就不会变成一个分层结构的文件夹，而只会变成一个整体的“com.example.security.mapper”文件夹，这样编译出来的话，interface接口依旧找不到与之对应的mapper.xml文件。</p>
+<p>将mapper.xml文件移动到resources文件夹中，再进行编译之后我们可以清楚的看见<img src="https://Git0814.github.io/post-images/1669207968865.png" alt="" loading="lazy">此时userdao和userdao.xml都到了同一个文件夹中。</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/spring-security/">
+              <h3 class="post-title">
+                Spring Security 快速开始
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

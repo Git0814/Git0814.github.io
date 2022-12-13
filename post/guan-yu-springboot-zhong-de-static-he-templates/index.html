@@ -1,0 +1,202 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>关于SpringBoot中的static和templates | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="关于SpringBoot中的static和templates | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="static：静止的  templates：模板
+SpringBoot默认的页面映射路径（即模板文件存放的位置）为“classpath:/templates/*.html”。静态文件路径为“classpath:/static/”，其中可以存..." />
+    <meta name="keywords" content="SpringBoot" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              关于SpringBoot中的static和templates
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-06
+              </span>
+              <span>
+                1 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/n3tC7_8P_/" class="post-tag">
+                  # SpringBoot
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>static：静止的  templates：模板</p>
+<p>SpringBoot默认的页面映射路径（即模板文件存放的位置）为“classpath:/templates/*.html”。静态文件路径为“classpath:/static/”，其中可以存放JS、CSS等模板共用的静态文件。</p>
+<p>当所有的文件放到static目录下时，都可以直接通过url访问，例如：<br>
+<img src="https://Git0814.github.io/post-images/1667704336153.png" alt="" loading="lazy"><br>
+当static目录下，分别有login.html和haha.png时，可以直接对他们进行访问<br>
+<img src="https://Git0814.github.io/post-images/1667704393581.png" alt="" loading="lazy"><br>
+<img src="https://Git0814.github.io/post-images/1667704456652.png" alt="" loading="lazy"></p>
+<p>而当一个html文件位于templates下时，不可以直接对他进行访问，而是需要通过Controller控制器层跳转访问的资源。</p>
+<p>具体的方式是：<br>
+1、引入thymeleaf的依赖。</p>
+<pre><code>&lt;!-- thymeleaf依赖 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>2、编写一个controller类<br>
+例如：</p>
+<pre><code>@Controller
+public class fileuploadController {
+
+    @RequestMapping(value = {&quot;/&quot;,&quot;/login&quot;})
+    public String login(){
+        return &quot;login&quot;;
+    }
+}
+</code></pre>
+<p>3、接下来就可以直接通过URL对这个资源进行访问;<br>
+<img src="https://Git0814.github.io/post-images/1667704706186.png" alt="" loading="lazy"></p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/requestmappingpostmappinggetmapping-san-zhe-qu-bie/">
+              <h3 class="post-title">
+                @RequestMapping、@PostMapping、@GetMapping三者区别
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,433 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redis（一）数据类型 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Redis（一）数据类型 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Redis内部使用一个redisObject对象来表示所有的key和value。Redis所有的key（键）都是字符串。
+在redis中，所有的存储都是以KV键值对的形式存储的，K是字符串类型，就是SDS；V 可能是字符串、list、has..." />
+    <meta name="keywords" content="redis" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Redis（一）数据类型
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-10
+              </span>
+              <span>
+                12 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/73TYNIJQh/" class="post-tag">
+                  # redis
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Redis内部使用一个redisObject对象来表示所有的key和value。Redis所有的key（键）都是字符串。<br>
+在redis中，所有的存储都是以KV键值对的形式存储的，K是字符串类型，就是SDS；V 可能是字符串、list、hash等(Redis支持的数据结构)，V并没有直接定成具体的类型，而是用redisObject封装了一层；实际存储的数据结构是由ptr指针具体指向。我们在谈基础数据结构时，讨论的是存储值的数据类型。</p>
+<p>Redis中key的操作：<br>
+keys  * 查看当前库中所有的key<br>
+exists key 判断某个key是否存在<br>
+type key 查看这个key的类型<br>
+del key 删除指定的key<br>
+unlink key 根据value选择非阻塞删除（仅将keys从keyspace元数据中删除，真正的删除会在后续异步操作）<br>
+expire key second 给key设置一个过期时间，过期后这个key就不再存在了<br>
+ttl key 用于查看key多久过期。-1：永不过期，-2：已经过期，其他表示还剩余的过期时间</p>
+<pre><code>127.0.0.1:6379&gt; set pj 1348
+OK
+127.0.0.1:6379&gt; keys *
+1) &quot;pj&quot;
+127.0.0.1:6379&gt; exists pj
+(integer) 1
+127.0.0.1:6379&gt; type pj
+string
+127.0.0.1:6379&gt; unlink pj
+(integer) 1
+127.0.0.1:6379&gt; exists pj
+(integer) 0
+127.0.0.1:6379&gt; set pj 123
+OK
+127.0.0.1:6379&gt; del pj
+(integer) 1
+127.0.0.1:6379&gt; exists pj
+(integer) 0
+set pojo 123
+OK
+127.0.0.1:6379&gt; expire pojo 25
+(integer) 1
+127.0.0.1:6379&gt; ttl pojo
+(integer) 15
+127.0.0.1:6379&gt; ttl pojo
+(integer) 11
+</code></pre>
+<p>还可以利用select命令来切换redis数据库，共有16个数据库，标记为从0~15。<br>
+dbsize：查看当前数据库中的key的数量<br>
+flushdb：清空当前库中内容<br>
+flushall：通杀掉全部的库中内容</p>
+<p><em><strong>Redis中有五大数据类型，分别是String、List、Set、Hash和Zset。</strong></em></p>
+<p><strong>（1）String</strong><br>
+String类型是二进制安全的，意思是 redis 的 string 可以包含任何数据。如数字，字符串，jpg图片或者序列化的对象。</p>
+<p>底层实现：</p>
+<p>如果一个字符串对象保存的是整数值， 并且这个整数值可以用 long 类型来表示， 那么字符串对象会将整数值保存在字符串对象结构的 ptr 属性里面（将 void* 转换成 long ）， 并将字符串对象的编码设置为 int 。<br>
+如果字符串对象保存的是一个字符串值， 并且这个字符串值的长度大于 39 字节， 那么字符串对象将使用一个简单动态字符串（SDS）来保存这个字符串值， 并将对象的编码设置为 raw。<br>
+如果字符串对象保存的是一个字符串值， 并且这个字符串值的长度小于等于 39 字节， 那么字符串对象将使用 embstr 编码的方式来保存这个字符串值。</p>
+<p>使用方法：</p>
+<ul>
+<li>SET 设置存储在给定键中的值 SET name value</li>
+<li>SETNX 设置存储再给定键中的值，且key不能和已有的key重复，不然无法创建</li>
+<li>GET 获取存储在给定键中的值 GET name</li>
+<li>DEL 删除存储在给定键中的值 DEL name</li>
+<li>INCR 将键存储的值加1 INCR key</li>
+<li>DECR 将键存储的值减1 DECR key</li>
+<li>INCRBY 将键存储的值加上整数 INCRBY key amount</li>
+<li>DECRBY 将键存储的值减去整数 DECRBY key amount</li>
+</ul>
+<p>关于过期时间的这一概念：</p>
+<ul>
+<li>EX second：设置键的过期时间为 second 秒。 SET key value EX second 效果等同于 SETEX key second value 。</li>
+<li>PX millisecond ：设置键的过期时间为 millisecond 毫秒。 SET key value PX millisecond 效果等同于 PSETEX key millisecond value 。</li>
+<li>NX ：只在键不存在时，才对键进行设置操作。 SET key value NX 效果等同于 SETNX key value 。</li>
+<li>XX ：只在键已经存在时，才对键进行设置操作</li>
+</ul>
+<p><strong>（2）List</strong><br>
+Redis中的List其实就是一个双端链表，是有序可重复的。</p>
+<p>底层实现：</p>
+<p>列表对象的编码可以是 ziplist 或者 linkedlist 。<br>
+列表对象保存的所有字符串元素的长度都小于 64 字节并且保存的元素数量小于 512 个，使用 ziplist 编码；否则使用 linkedlist；</p>
+<p>使用方法：</p>
+<ul>
+<li>
+<p>RPUSH 将给定值推入到列表右端 RPUSH key value</p>
+</li>
+<li>
+<p>LPUSH 将给定值推入到列表左端 LPUSH key value</p>
+<pre><code>  lpush与rpush的区别
+  127.0.0.1:6379&gt; lpush list1 v1 v2 v3
+  (integer) 3
+  127.0.0.1:6379&gt; lrange list1 0 -1
+  1) &quot;v3&quot;
+  2) &quot;v2&quot;
+  3) &quot;v1&quot;
+  127.0.0.1:6379&gt; rpush list2 v1 v2 v3
+  (integer) 3
+  127.0.0.1:6379&gt; lrange list2 0 -1
+  1) &quot;v1&quot;
+  2) &quot;v2&quot;
+  3) &quot;v3&quot;
+</code></pre>
+</li>
+<li>
+<p>RPOP 从列表的右端弹出一个值，并返回被弹出的值 RPOP key</p>
+</li>
+<li>
+<p>LPOP 从列表的左端弹出一个值，并返回被弹出的值 LPOP key</p>
+</li>
+<li>
+<p>LRANGE 获取列表在给定范围上的所有值 LRANGE key 0 -1</p>
+</li>
+<li>
+<p>LINDEX 通过索引获取列表中的元素。你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推。 LINDEX key index</p>
+</li>
+<li>
+<p>brpoop key time    # 从右侧弹出元素，如果列表没有元素，会阻塞住，如果time秒后还是没有元素则返回</p>
+<p>127.0.0.1:6379&gt; brpop list1 5</p>
+<ol>
+<li>&quot;list1&quot;</li>
+<li>&quot;v1&quot;<br>
+127.0.0.1:6379&gt; brpop list1 5</li>
+<li>&quot;list1&quot;</li>
+<li>&quot;v2&quot;<br>
+127.0.0.1:6379&gt; brpop list1 5</li>
+<li>&quot;list1&quot;</li>
+<li>&quot;v3&quot;<br>
+127.0.0.1:6379&gt; brpop list1 5<br>
+(nil)<br>
+(5.06s)<br>
+此时最后一个brpop操作已经没有元素可以弹出，所以列表阻塞了五秒之后返回</li>
+</ol>
+</li>
+</ul>
+<p><strong>（3）Set</strong></p>
+<p>Redis 的 Set 是 String 类型的无序集合。集合成员是唯一的，这就意味着集合中不能出现重复的数据。Redis 中集合是通过哈希表实现的，所以添加，删除，查找的复杂度都是 O(1)。set和list都可以存储多个字符串，他们之间的不同之处在于，list是<code>有序可重复</code>，而set是<code>无序不可重复</code>。</p>
+<p>底层实现：</p>
+<p>集合对象的编码可以是 intset 或者 hashtable 。<br>
+集合对象保存的所有元素都是整数值并且保存的元素数量不超过 512 个，使用intset 编码；否则使用hashtable；</p>
+<pre><code>127.0.0.1:6379&gt; lpush list1 v1 v2 v3 v1
+(integer) 4
+127.0.0.1:6379&gt; sadd set1 v1 v2 v3 v1
+(integer) 3
+127.0.0.1:6379&gt; lrange list1 0 -1
+1) &quot;v1&quot;
+2) &quot;v3&quot;
+3) &quot;v2&quot;
+4) &quot;v1&quot;
+127.0.0.1:6379&gt; smembers set1
+1) &quot;v3&quot;
+2) &quot;v2&quot;
+3) &quot;v1&quot;
+这里可以看出，list将所有的value都添加进去了，包括重复的v1。但是set就没有将重复的v1添加进去。
+</code></pre>
+<p>使用方法：</p>
+<ul>
+<li>
+<p>SADD 向集合添加一个或多个成员 SADD key value</p>
+</li>
+<li>
+<p>SCARD 获取集合的成员数 SCARD key</p>
+</li>
+<li>
+<p>SMEMBERS 返回集合中的所有成员 SMEMBERS key member</p>
+</li>
+<li>
+<p>SISMEMBER 判断 member 元素是否是集合 key 的成员 SISMEMBER key member</p>
+</li>
+<li>
+<p>SREM 表示移除这个元素，0表示这个元素不存在，1表示移除成功</p>
+<pre><code>  127.0.0.1:6379&gt; sadd set1 v1 v2 v3 v1
+  (integer) 3
+  127.0.0.1:6379&gt; smembers set1
+  1) &quot;v3&quot;
+  2) &quot;v2&quot;
+  3) &quot;v1&quot;
+  127.0.0.1:6379&gt; scard set1
+  (integer) 3
+  127.0.0.1:6379&gt; sismember set1 v2
+  (integer) 1
+  127.0.0.1:6379&gt; srem set1 v4
+  (integer) 0
+  127.0.0.1:6379&gt; srem set1 v3
+  (integer) 1
+  127.0.0.1:6379&gt; smembers set1
+  1) &quot;v2&quot;
+  2) &quot;v1&quot;
+</code></pre>
+</li>
+<li>
+<p>sinter set1 set2     # 获取 set1  和 set2  的交集</p>
+</li>
+<li>
+<p>sunion set1 set2     # 获取 set1 和 set2 的并集</p>
+</li>
+<li>
+<p>sdiff set1 set2      # 获取 set1 和 set2 的差集</p>
+</li>
+</ul>
+<p><strong>（4）Hash</strong></p>
+<p>底层实现:</p>
+<p>哈希对象的编码可以是 ziplist 或者 hashtable 。<br>
+哈希对象保存的所有键值对的键和值的字符串长度都小于 64 字节并且保存的键值对数量小于 512 个，使用ziplist 编码；否则使用hashtable</p>
+<p>使用方法：</p>
+<p>HSET 添加键值对 HSET hash-key sub-key1 value1<br>
+HMSET 一次添加多个键值对<br>
+HGET 获取指定散列键的值 HGET hash-key key1<br>
+HGETALL 获取散列中包含的所有键值对 HGETALL hash-key<br>
+HDEL 如果给定键存在于散列中，那么就移除这个键 HDEL hash-key sub-key1<br>
+HKEYS 查询该hash中的所有field<br>
+HVALS 查询该hash中的所有value</p>
+<pre><code>    127.0.0.1:6379&gt; hset people name azhang
+    (integer) 1
+    127.0.0.1:6379&gt; hset people age 25
+    (integer) 1
+    127.0.0.1:6379&gt; hset people address sichuan
+    (integer) 1
+    127.0.0.1:6379&gt; hmset people2 name lisi age 26 address beijing
+    OK
+    127.0.0.1:6379&gt; hkeys people
+    1) &quot;name&quot;
+    2) &quot;age&quot;
+    3) &quot;address&quot;
+    127.0.0.1:6379&gt; hvals people
+    1) &quot;azhang&quot;
+    2) &quot;25&quot;
+    3) &quot;sichuan&quot;
+    127.0.0.1:6379&gt; hexists people name
+    (integer) 1
+    127.0.0.1:6379&gt; hgetall people
+    1) &quot;name&quot;
+    2) &quot;azhang&quot;
+    3) &quot;age&quot;
+    4) &quot;25&quot;
+    5) &quot;address&quot;
+    6) &quot;sichuan&quot;
+</code></pre>
+<p>Hash 更适合存储结构化的数据，比如 Java 中的对象；其实 Java 中的对象也可以用 string 进行存储，只需要将 对象 序列化成 json 串就可以，但是如果这个对象的某个属性更新比较频繁的话，那么每次就需要重新将整个对象序列化存储，这样消耗开销比较大。可如果用 hash 来存储 对象的每个属性，那么每次只需要更新要更新的属性就可以。</p>
+<p><strong>（5）ZSet</strong><br>
+原理：<br>
+Zset和普通set十分相似，不同的是，zset会采用score评分来进行排序，默认是用score来进行由小到大排序。集合中的成员是唯一的，但是评分score不是唯一的。</p>
+<p>使用方法:<br>
+zadd key score1 value1 score2 value2 score3 value3 将一个或多个value元素及其score添加到key中<br>
+zrange key start stop 返回有序集，下标在start和stop之间。<br>
+zrangebyscore key min max 返回有序集，score在min到max之间<br>
+withscores 在命令行后面加上这个，可以在查询值带上score</p>
+<pre><code>    127.0.0.1:6379&gt; zadd top 500 java 400 php 200 c 100 go 300 python
+    (integer) 5
+    127.0.0.1:6379&gt; zrange top 0 -1
+    1) &quot;go&quot;
+    2) &quot;c&quot;
+    3) &quot;python&quot;
+    4) &quot;php&quot;
+    5) &quot;java&quot;
+    127.0.0.1:6379&gt; zrangebyscore top 200 400
+    1) &quot;c&quot;
+    2) &quot;python&quot;
+    3) &quot;php&quot;
+    127.0.0.1:6379&gt; zrange top 0 -1 withscores
+    1) &quot;go&quot;
+    2) &quot;100&quot;
+    3) &quot;c&quot;
+    4) &quot;200&quot;
+    5) &quot;python&quot;
+    6) &quot;300&quot;
+    7) &quot;php&quot;
+    8) &quot;400&quot;
+    9) &quot;java&quot;
+    10) &quot;500&quot;
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/springboot-zheng-he-mybatismybatis-plus/">
+              <h3 class="post-title">
+                SpringBoot整合mybatis
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

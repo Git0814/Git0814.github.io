@@ -1,0 +1,539 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spring小总结 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Spring小总结 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="一、Spring框架概述：
+Spring 是一个主流的 Java Web 开发框架，该框架是一个轻量级的应用框架，具有很高的凝聚力和吸引力。Spring 框架因其强大的功能以及卓越的性能而受到众多开发人员的喜爱。
+Spring 是分层的 J..." />
+    <meta name="keywords" content="Spring" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Spring小总结
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-10-23
+              </span>
+              <span>
+                20 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/o0KROiDON/" class="post-tag">
+                  # Spring
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p><strong>一、Spring框架概述：</strong></p>
+<p>Spring 是一个主流的 Java Web 开发框架，该框架是一个轻量级的应用框架，具有很高的凝聚力和吸引力。Spring 框架因其强大的功能以及卓越的性能而受到众多开发人员的喜爱。<br>
+Spring 是分层的 Java SE/EE full-stack 轻量级开源框架，以 IoC（Inverse of Control，控制反转）和 AOP（Aspect Oriented Programming，面向切面编程）为内核，使用基本的 JavaBean 完成以前只可能由 EJB 完成的工作，取代了 EJB 臃肿和低效的开发模式。</p>
+<p>在实际开发中，通常服务器端采用三层体系架构，分别为表现层（web）、业务逻辑层（service）、持久层（dao）。</p>
+<p>Spring特点：<br>
+(1)	方便解耦，简化开发；<br>
+(2)	Aop编程支持<br>
+(3)	方便程序测试<br>
+(4)	方便集成整合各种框架<br>
+(5)	降低javaEE api的使用难度</p>
+<p>Spring 框架采用分层架构，根据不同的功能被划分成了多个模块，这些模块大体可分为 Data Access/Integration、Web、AOP、Aspects、Messaging、Instrumentation、Core Container 和 Test<img src="https://Git0814.github.io/post-images/1666525235434.png" alt="" loading="lazy"></p>
+<p><strong>二、Spring IoC容器</strong></p>
+<p>IoC 是指在程序开发中，实例的创建不再由程序管理，而是由 Spring 容器创建。Spring 容器会负责控制程序之间的关系，而不是由程序代码直接控制，因此，控制权由程序代码转移到了 Spring 容器中，控制权发生了反转，这就是 Spring 的 IoC 思想（控制反转）。</p>
+<p>DI是指Spring 容器在创建被调用者的实例时，会自动将调用者需要的对象实例注入给调用者。这样，调用者通过 Spring 容器获得被调用者实例，这称为依赖注入。。所以可以说<code>Ioc是思想，DI是手段。</code><br>
+依赖注入主要有两种实现方式，分别是属性 setter 注入和构造方法注入。</p>
+<p>Spring 分别提供了两种 IoC 容器，分别为 BeanFactory 和 ApplicationContext。</p>
+<ol>
+<li>
+<p>BeanFactory 是基础类型的 IoC 容器，它由org.springframework.beans.facytory.BeanFactory 接口定义，并提供了完整的 IoC 服务支持。简单来说，BeanFactory 就是一个管理 Bean 的工厂，它主要负责初始化各种 Bean，并调用它们的生命周期方法。<br>
+关于bean的声明周期我特别想引用之前在网上看到的一篇博客：<br>
+（  https://blog.51cto.com/u_15463439/5110799 ）</p>
+<p>里面将bean的生命周期比作是人的一生<img src="https://Git0814.github.io/post-images/1666526131976.webp" alt="" loading="lazy"></p>
+</li>
+<li>
+<p>ApplicationContext是 BeanFactory 的子接口。<br>
+1）ClassPathXmlApplicationContext<br>
+该类从类路径 ClassPath 中寻找指定的 XML 配置文件，找到并装载完成 ApplicationContext 的实例化工作，具体如下所示。<br>
+ApplicationContext applicationContext = new ClassPathXmlApplicationContext(String configLocation);<br>
+在上述代码中，configLocation 参数用于指定 Spring 配置文件的名称和位置，如 applicationContext.xml。<br>
+2）FileSystemXmlApplicationContext<br>
+该类从指定的文件系统路径中寻找指定的 XML 配置文件，找到并装载完成 ApplicationContext 的实例化工作，具体如下所示。<br>
+ApplicationContext applicationContext = new FileSystemXmlApplicationContext(String configLocation);<br>
+它与 ClassPathXmlApplicationContext 的区别是：在读取 Spring 的配置文件时，FileSystemXmlApplicationContext 不再从类路径中读取配置文件，而是通过参数指定配置文件的位置，它可以获取类路径之外的资源，如“F：/workspaces/applicationContext.xml”。</p>
+</li>
+</ol>
+<p><code>通常情况下我们都是采用ClassPathXmlApplicationContext的方法来实例化context容器。</code></p>
+<pre><code>**第一个Spring程序：**
+
+1、创建一个实体类Hello：
+
+    public class hello {
+        private String str;
+        public String getStr() {
+            return str;
+        }
+        public void setStr(String str) {
+            this.str = str;
+        }
+        @Override
+        public String toString() {
+            return &quot;hello{&quot; +
+                    &quot;str='&quot; + str + '\'' +
+                    '}';
+        }
+    }
+
+2、配置ApplicationContext.xml
+
+    &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+    &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+        xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+            https://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+        &lt;!--使用spring来创建对象--&gt;
+        &lt;bean id=&quot;hello&quot; class=&quot;com.hellospring.hello&quot;&gt;
+            &lt;property name=&quot;str&quot; value=&quot;Spring&quot;&gt;&lt;/property&gt;
+        &lt;/bean&gt;
+    &lt;/beans&gt;
+
+3、使用一个测试类使用bean来调用hello
+
+        @Test
+        public void test() {
+            ApplicationContext context = new ClassPathXmlApplicationContext(&quot;beans.xml&quot;);
+            hello hlo = (hello) context.getBean(&quot;hello&quot;);
+            System.out.println(hlo);
+        }
+
+4、通过输出结果可判断出这个Spring程序配置并使用成功
+</code></pre>
+<p>3.Bean的基本配置:</p>
+<p>bean 元素的常用属性</p>
+<pre><code>id：是一个 Bean 的唯一标识符，Spring 容器对 Bean 的配置和管理都通过该属性完成
+
+name： Spring 容器同样可以通过此属性对容器中的 Bean 进行配置和管理，name 属性中可以为 Bean 指定多个名称，每个名称之间用逗号或分号隔开
+
+class：该属性指定了 Bean 的具体实现类，它必须是一个完整的类名，使用类的全限定名
+
+scope ：	用于设定 Bean 实例的作用域，其属性值有 singleton（单例）、prototype（原型）、request、session 和 global Session。其默认值是 singleton
+
+constructor-arg：	&lt;bean&gt;元素的子元素，可以使用此元素传入构造参数进行实例化。该元素的 index 属性指定构造参数的序号（从 0 开始），type 属性指定构造参数的类型
+
+property ：	&lt;bean&gt;元素的子元素，用于调用 Bean 实例中的 Set 方法完成属性赋值，从而完成依赖注入。该元素的 name 属性指定 Bean 实例中的相应属性名
+
+ref	 ： &lt;property&gt; 和 &lt;constructor-arg&gt; 等元素的子元索，该元素中的 bean 属性用于指定对 Bean 工厂中某个 Bean 实例的引用
+
+value	：&lt;property&gt; 和 &lt;constractor-arg&gt; 等元素的子元素，用于直接指定一个常量值
+
+list	：用于封装 List 或数组类型的依赖注入
+
+set  ：	用于封装 Set 类型属性的依赖注入
+
+map	：用于封装 Map 类型属性的依赖注入
+
+entry：	&lt;map&gt; 元素的子元素，用于设置一个键值对。其 key 属性指定字符串类型的键值，ref 或 value 子元素指定其值
+</code></pre>
+<p>4.Bean的实例化：</p>
+<p>bean的实例化只需要使用:</p>
+<pre><code>    // 初始化Spring容器，加载配置文件，并对bean进行实例化
+XmlPath = ApplicationContext.xml 的路径
+ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+XmlPath);
+</code></pre>
+<p>5.装配Bean的三种方式</p>
+<p>1、基于xml装配</p>
+<pre><code>xml配置有两种方式：设值注入（Setter Injection）和构造注入（Constructor Injection）。
+在 Spring 实例化 Bean 的过程中，首先会调用默认的构造方法实例化 Bean 对象，然后通过 Java 的反射机制调用 setXxx() 方法进行属性的注入。
+因此，设值注入要求一个 Bean 的对应类必须满足以下两点要求。
+必须提供一个默认的无参构造方法。
+必须为需要注入的属性提供对应的 setter 方法。
+</code></pre>
+<p>xml装配过程：<img src="https://Git0814.github.io/post-images/1666529103106.png" alt="" loading="lazy"></p>
+<p>2、基于注解annotation装配</p>
+<p>Java 从 JDK 5.0 以后，提供了 Annotation（注解）功能，Spring 也提供了对 Annotation 技术的全面支持。Spring3 中定义了一系列的 Annotation（注解），常用的注解如下。</p>
+<pre><code>1）@Component
+可以使用此注解描述 Spring 中的 Bean，但它是一个泛化的概念，仅仅表示一个组件（Bean），并且可以作用在任何层次。使用时只需将该注解标注在相应类上即可。
+2）@Repository
+用于将数据访问层（DAO层）的类标识为 Spring 中的 Bean，其功能与 @Component 相同。
+3）@Service
+通常作用在业务层（Service 层），用于将业务层的类标识为 Spring 中的 Bean，其功能与 @Component 相同。
+4）@Controller
+通常作用在控制层（如 Struts2 的 Action），用于将控制层的类标识为 Spring 中的 Bean，其功能与 @Component 相同。
+5）@Autowired
+用于对 Bean 的属性变量、属性的 Set 方法及构造函数进行标注，配合对应的注解处理器完成 Bean 的自动配置工作。默认按照 Bean 的类型进行装配。
+6）@Resource
+其作用与 Autowired 一样。其区别在于 @Autowired 默认按照 Bean 类型装配，而 @Resource 默认按照 Bean 实例名称进行装配。
+7）@Qualifier
+与 @Autowired 注解配合使用，会将默认的按 Bean 类型装配修改为按 Bean 的实例名称装配，Bean 的实例名称由 @Qualifier 注解的参数指定。
+</code></pre>
+<p>3、自动装配</p>
+<p>自动装配就是指 Spring 容器可以自动装配（autowire）相互协作的 Bean 之间的关联关系，将一个 Bean 注入其他 Bean 的 Property 中。</p>
+<p>要使用自动装配，就需要配置 <bean> 元素的 autowire 属性。autowire 属性有五个值：</p>
+<pre><code>1）byName	： 根据 Property 的 name 自动装配，如果一个 Bean 的 name 和另一个 Bean 中的 Property 的 name 相同，则自动装配这个 Bean 到 Property 中。
+
+2）byType	：根据 Property 的数据类型（Type）自动装配，如果一个 Bean 的数据类型兼容另一个 Bean 中 Property 的数据类型，则自动装配。
+
+3）constructor ：	根据构造方法的参数的数据类型，进行 byType 模式的自动装配。
+
+4）autodetect	：如果发现默认的构造方法，则用 constructor 模式，否则用 byType 模式。
+
+5）no	：默认情况下，不使用自动装配，Bean 依赖必须通过 ref 元素定义。
+</code></pre>
+<p><strong>三、Spring AOP</strong></p>
+<p>AOP 的全称是“Aspect Oriented Programming”，即面向切面编程，它将业务逻辑的各个部分进行隔离，使开发人员在编写业务逻辑时可以专心于核心业务，从而提高了开发效率。</p>
+<p>AOP 采取横向抽取机制，取代了传统纵向继承体系的重复性代码，其应用主要体现在事务处理、日志管理、权限控制、异常处理等方面。</p>
+<p>AOP是基于Java的动态代理，所以要学会aop就必须要了解Java的动态代理，在了解动态代理之前先学习静态代理。</p>
+<p>代理模式是一种设计模式，能够使得在不修改源目标的前提下，额外扩展源目标的功能。即通过访问源目标的代理类，再由代理类去访问源目标。这样一来，要扩展功能，就无需修改源目标的代码了。只需要在代理类上增加就可以了。</p>
+<p>此处例子引用我在掘金上看到的文章：链接：（https://juejin.cn/post/6844903744954433544）</p>
+<pre><code>编写一个接口 UserService ，以及该接口的一个实现类 UserServiceImpl
+public interface UserService {
+    public void select();   
+    public void update();
+}
+
+public class UserServiceImpl implements UserService {  
+    public void select() {  
+        System.out.println(&quot;查询 selectById&quot;);
+    }
+    public void update() {
+        System.out.println(&quot;更新 update&quot;);
+    }
+}
+
+我们将通过静态代理对 UserServiceImpl 进行功能增强，在调用 select 和 update 之前记录一些日志。写一个代理类 UserServiceProxy，代理类需要实现 UserService
+
+public class UserServiceProxy implements UserService {
+    private UserService target; // 被代理的对象
+
+    public UserServiceProxy(UserService target) {
+        this.target = target;
+    }
+    public void select() {
+        before();
+        target.select();    // 这里才实际调用真实主题角色的方法
+        after();
+    }
+    public void update() {
+        before();
+        target.update();    // 这里才实际调用真实主题角色的方法
+        after();
+    }
+
+    private void before() {     // 在执行方法之前执行
+        System.out.println(String.format(&quot;log start time [%s] &quot;, new Date()));
+    }
+    private void after() {      // 在执行方法之后执行
+        System.out.println(String.format(&quot;log end time [%s] &quot;, new Date()));
+    }
+}
+复制代码客户端测试
+public class Client1 {
+    public static void main(String[] args) {
+        UserService userServiceImpl = new UserServiceImpl();
+        UserService proxy = new UserServiceProxy(userServiceImpl);
+
+        proxy.select();
+        proxy.update();
+    }
+}
+
+输出：
+log start time [Thu Dec 20 14:13:25 CST 2018] 
+查询 selectById
+log end time [Thu Dec 20 14:13:25 CST 2018] 
+log start time [Thu Dec 20 14:13:25 CST 2018] 
+更新 update
+log end time [Thu Dec 20 14:13:25 CST 2018] 
+</code></pre>
+<p>这种模式虽然好理解，但是缺点也很明显：<br>
+会存在大量的冗余的代理类，这里只演示了1个接口，如果有10个接口，就必须定义10个代理类。<br>
+不易维护，一旦接口更改，代理类和目标类都需要更改。</p>
+<p>动态代理，通俗点说就是：无需声明式的创建java代理类，而是在运行过程中生成&quot;虚拟&quot;的代理类，被ClassLoader加载。从而避免了静态代理那样需要声明大量的代理类。<br>
+主要核心类只有2个：<code>java.lang.reflect.Proxy</code>和<code>java.lang.reflect.InvocationHandler</code>。</p>
+<p>基于jdk的动态代理</p>
+<pre><code>//用这个类自动生成代理类
+public class ProxyInvocationHadle implements InvocationHandler {
+
+//被代理的接口
+private Object target;
+
+public void setTarget(Object target) {
+    this.target = target;
+    }
+
+//生成得到代理类
+public Object getProxy(){
+   return Proxy.newProxyInstance(this.getClass().getClassLoader(),target.getClass().getInterfaces(),this );
+    }
+
+@Override
+public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    //动态代理的本质，就是使用反射机制实现
+    Object resuilt = method.invoke(target, args);
+    return resuilt;
+    }
+}
+</code></pre>
+<p>执行代码：</p>
+<pre><code>public class Client {
+    public static void main(String[] args) {
+
+        UserServiceImpl userService = new UserServiceImpl();
+
+        ProxyInvocationHadle proxyInvocationHadle = new ProxyInvocationHadle();
+
+        proxyInvocationHadle.setTarget(userService);
+
+        UserService proxy = (UserService) proxyInvocationHadle.getProxy();
+
+        proxy.add();
+
+    }
+}
+</code></pre>
+<p>继续回到AOP：</p>
+<p>目前最流行的 AOP 框架有两个，分别为 Spring AOP 和 AspectJ。</p>
+<p>Spring AOP 使用纯 Java 实现，不需要专门的编译过程和类加载器，在运行期间通过代理方式向目标类植入增强的代码。</p>
+<p>AspectJ 是一个基于 Java 语言的 AOP 框架，从 Spring 2.0 开始，Spring AOP 引入了对 AspectJ 的支持。AspectJ 扩展了 Java 语言，提供了一个专门的编译器，在编译时提供横向代码的植入。</p>
+<p>AOP 的相关术语主要包含 Joinpoint、Pointcut、Advice、Target、Weaving、Proxy 和 Aspect</p>
+<pre><code>Joinpoint（连接点） ：	指那些被拦截到的点，在 Spring 中，可以被动态代理拦截目标类的方法。
+Pointcut（切入点）	：指要对哪些 Joinpoint 进行拦截，即被拦截的连接点。
+Advice（通知）	：指拦截到 Joinpoint 之后要做的事情，即对切入点增强的内容。
+Target（目标）	：指代理的目标对象。
+Weaving（植入）	：指把增强代码应用到目标上，生成代理对象的过程。
+Proxy（代理）	：指生成的代理对象。
+Aspect（切面）	：切入点和通知的结合。
+</code></pre>
+<p>引用我在知乎上看到的一篇文章上面看到的一段话（https://zhuanlan.zhihu.com/p/37497663）</p>
+<p>下面我以一个简单的例子来比喻一下 AOP 中 Aspect, Joint point, Pointcut 与 Advice之间的关系.</p>
+<p>让我们来假设一下, 从前有一个叫爪哇的小县城, 在一个月黑风高的晚上, 这个县城中发生了命案. 作案的凶手十分狡猾, 现场没有留下什么有价值的线索. 不过万幸的是, 刚从隔壁回来的老王恰好在这时候无意中发现了凶手行凶的过程, 但是由于天色已晚, 加上凶手蒙着面, 老王并没有看清凶手的面目, 只知道凶手是个男性, 身高约七尺五寸. 爪哇县的县令根据老王的描述, 对守门的士兵下命令说: 凡是发现有身高七尺五寸的男性, 都要抓过来审问. 士兵当然不敢违背县令的命令, 只好把进出城的所有符合条件的人都抓了起来</p>
+<p>来让我们看一下上面的一个小故事和 AOP 到底有什么对应关系.</p>
+<p>首先我们知道, 在 Spring AOP 中 Joint point 指代的是所有方法的执行点, 而 point cut 是一个描述信息, 它修饰的是 Joint point, 通过 point cut, 我们就可以确定哪些 Joint point 可以被织入 Advice. 对应到我们在上面举的例子, 我们可以做一个简单的类比, Joint point 就相当于 爪哇的小县城里的百姓,pointcut 就相当于 老王所做的指控, 即凶手是个男性, 身高约七尺五寸, 而 Advice 则是施加在符合老王所描述的嫌疑人的动作: 抓过来审问.<br>
+为什么可以这样类比呢?</p>
+<p>Joint point ： 爪哇的小县城里的百姓: 因为根据定义, Joint point 是所有可能被织入 Advice 的候选的点, 在 Spring AOP中, 则可以认为所有方法执行点都是 Joint point. 而在我们上面的例子中, 命案发生在小县城中, 按理说在此县城中的所有人都有可能是嫌疑人.</p>
+<p>Pointcut ：男性, 身高约七尺五寸: 我们知道, 所有的方法(joint point) 都可以织入 Advice, 但是我们并不希望在所有方法上都织入 Advice, 而 Pointcut 的作用就是提供一组规则来匹配joinpoint, 给满足规则的 joinpoint 添加 Advice. 同理, 对于县令来说, 他再昏庸, 也知道不能把县城中的所有百姓都抓起来审问, 而是根据凶手是个男性, 身高约七尺五寸, 把符合条件的人抓起来. 在这里 凶手是个男性, 身高约七尺五寸 就是一个修饰谓语, 它限定了凶手的范围, 满足此修饰规则的百姓都是嫌疑人, 都需要抓起来审问.</p>
+<p>Advice ：抓过来审问, Advice 是一个动作, 即一段 Java 代码, 这段 Java 代码是作用于 point cut 所限定的那些 Joint point 上的. 同理, 对比到我们的例子中, 抓过来审问 这个动作就是对作用于那些满足 男性, 身高约七尺五寸 的爪哇的小县城里的百姓.</p>
+<p>Aspect:：Aspect 是 point cut 与 Advice 的组合, 因此在这里我们就可以类比: &quot;根据老王的线索, 凡是发现有身高七尺五寸的男性, 都要抓过来审问&quot; 这一整个动作可以被认为是一个 Aspect.</p>
+<p>AOP中的Joinpoint可以有多种类型：构造方法调用，字段的设置和获取，方法的调用，方法的执行，异常的处理执行，类的初始化。也就是说在AOP的概念中我们可以在上面的这些Joinpoint上织入我们自定义的Advice，但是在Spring中却没有实现上面所有的joinpoint，确切的说，Spring只支持方法执行类型的Joinpoint。</p>
+<p>Advice 的类型：</p>
+<pre><code>before advice：在 join point 前被执行的 advice. 虽然 before advice 是在 join point 前被执行, 但是它并不能够阻止 join point 的执行, 除非发生了异常(即我们在 before advice 代码中, 不能人为地决定是否继续执行 join point 中的代码)
+
+after return advice：在一个 join point 正常返回后执行的 advice
+
+after throwing advice： 当一个 join point 抛出异常后执行的 advice
+
+after(final) advice：无论一个 join point 是正常退出还是发生了异常, 都会被执行的 advice.
+
+around advice：在 join point 前和 joint point 退出后都执行的 advice. 这个是最常用的 advice.
+
+introduction：introduction可以为原有的对象增加新的属性和方法。
+</code></pre>
+<p>下面举个例子演示一下aop</p>
+<p>1.下一个rent接口：</p>
+<pre><code>public interface rent {
+    void rent();
+
+    void recive();
+}
+</code></pre>
+<p>2.写一个Host类来实现这个接口类</p>
+<pre><code>public class Host implements rent {
+    @Override
+    public void rent() {
+        System.out.println(&quot;房东想要租出这个房子&quot;);
+    }
+
+    @Override
+    public void recive() {
+        System.out.println(&quot;房东又想收回去了&quot;);
+    }
+}
+</code></pre>
+<p>3.写一个time类作为切入点的方法</p>
+<pre><code>public class Time {
+    public void showtime(){
+        System.out.println(&quot;Now time is: &quot; + System.currentTimeMillis());
+    }
+}
+</code></pre>
+<p>4.在applicationcontext.xml的配置文件中进行配置：</p>
+<?xml version="1.0" encoding="UTF-8"?>
+<p><beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd"></p>
+<pre><code>&lt;bean id=&quot;RentHouse&quot; class=&quot;com.zhufang.Rent.Host&quot;/&gt;
+&lt;bean id=&quot;NowTime&quot; class=&quot;com.zhufang.Rent.Time&quot;/&gt;
+
+&lt;aop:config proxy-target-class=&quot;true&quot;&gt;
+    &lt;aop:aspect id=&quot;time&quot; ref=&quot;NowTime&quot;&gt;
+        &lt;aop:pointcut id=&quot;rent&quot; expression=&quot;execution(* com.zhufang.Rent.Host.*(..))&quot;/&gt;
+        &lt;aop:before method=&quot;showtime&quot; pointcut-ref=&quot;rent&quot;/&gt;
+        &lt;aop:after method=&quot;showtime&quot; pointcut-ref=&quot;rent&quot;/&gt;
+    &lt;/aop:aspect&gt;
+&lt;/aop:config&gt;
+</code></pre>
+</beans>
+<p>6.得到输出结果：</p>
+<pre><code>Now time is: 1666617298389
+房东想要租出这个房子
+Now time is: 1666617298403
+
+Now time is: 1666617298403
+房东又想收回去了
+Now time is: 1666617298403
+</code></pre>
+<p>由输出结果可以看到我们给Rent接口的实现类的所有方法都加上了代理</p>
+<p>如果还有另外一个横切关注点，要想实现有顺序的切入的话<br>
+有两个办法：</p>
+<p>（1）aspect里面有一个order属性，order属性的数字就是横切关注点的顺序<br>
+<img src="https://Git0814.github.io/post-images/1666617665348.png" alt="" loading="lazy"><br>
+（2）把关注点一定义在关注点二的前面，Spring默认以aspect的定义顺序作为织入顺序</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/java-fan-she/">
+              <h3 class="post-title">
+                Java反射
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

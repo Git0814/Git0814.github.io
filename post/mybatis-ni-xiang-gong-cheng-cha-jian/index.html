@@ -1,0 +1,288 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mybatis逆向工程插件 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Mybatis逆向工程插件 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Mybatis的逆向工程就是由代码生成器生成我们需要的代码和映射文件。我们在编写Mybatis程序时，基本都是围绕着pojo类，Mapper接口，Mapper.xml文件等文件来进行的。如果实际开发中数据库的表特别多，那么我们需要手动去写每..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Mybatis逆向工程插件
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-01
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Mybatis的逆向工程就是由代码生成器生成我们需要的代码和映射文件。我们在编写Mybatis程序时，基本都是围绕着pojo类，Mapper接口，Mapper.xml文件等文件来进行的。如果实际开发中数据库的表特别多，那么我们需要手动去写每一张表的pojo类，Mapper接口，Mapper.xml文件，这显然需要花费巨大的精力，而且可能由于表字段太多，哪里写错了都难以排除。所以我们在实际开发中，一般使用逆向工程方式来自动生成所需的文件信息。</p>
+<p>当一个项目需要使用mybatis的时候，建议重新写一个文件来使用逆向工程来生成需要的类，接口和文件。</p>
+<p>首先导入相关的jar包，因为是以插件的形式使用，所以导入方式如下：</p>
+<pre><code>    &lt;build&gt;
+        &lt;plugins&gt;
+        &lt;!--myBatis逆向工程插件--&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.mybatis.generator&lt;/groupId&gt;
+                &lt;artifactId&gt;mybatis-generator-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.3.2&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;verbose&gt;true&lt;/verbose&gt;
+                    &lt;overwrite&gt;true&lt;/overwrite&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+</code></pre>
+<p>该插件最主要的两个文件就是generatorConfig.xml和generator.properties。</p>
+<p>generator.properties是用来记载所需要连接的数据库的信息：例如</p>
+<pre><code>//记录mysql-connector-java-8.0.29.jar包的位置
+jdbc.driverLocation=C:/Users/Lenovo/.m2/repository/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
+
+jdbc.driverClass=com.mysql.cj.jdbc.Driver
+
+jdbc.connectionURL=jdbc:mysql://127.0.0.1:3306/crm
+
+jdbc.userId=root
+
+jdbc.password=123456
+</code></pre>
+<p>generatorConfig.xml是用来配置使用的信息：</p>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+<pre><code>&lt;!--指定mysql数据库驱动--&gt;
+&lt;!--&lt;classPathEntry location=&quot;E://repository-p2p//mysql//mysql-connector-java//5.1.43//mysql-connector-java-5.1.43.jar&quot;/&gt;--&gt;
+
+&lt;!--导入属性配置--&gt;
+&lt;properties resource=&quot;generator.properties&quot;&gt;&lt;/properties&gt;
+
+&lt;!--指定特定数据库的jdbc驱动jar包的位置--&gt;
+&lt;classPathEntry location=&quot;${jdbc.driverLocation}&quot;/&gt;
+
+&lt;context id=&quot;default&quot; targetRuntime=&quot;MyBatis3&quot;&gt;
+
+    &lt;!-- optional，旨在创建class时，对注释进行控制，false生成注释,true无注释 --&gt;
+    &lt;commentGenerator&gt;
+        &lt;property name=&quot;suppressDate&quot; value=&quot;false&quot;/&gt;
+        &lt;property name=&quot;suppressAllComments&quot; value=&quot;false&quot;/&gt;
+    &lt;/commentGenerator&gt;
+
+    &lt;!--jdbc的数据库连接 --&gt;
+    &lt;jdbcConnection
+            driverClass=&quot;${jdbc.driverClass}&quot;
+            connectionURL=&quot;${jdbc.connectionURL}&quot;
+            userId=&quot;${jdbc.userId}&quot;
+            password=&quot;${jdbc.password}&quot;&gt;
+    &lt;/jdbcConnection&gt;
+
+
+    &lt;!-- 非必需，类型处理器，在数据库类型和java类型之间的转换控制--&gt;
+    &lt;javaTypeResolver&gt;
+        &lt;property name=&quot;forceBigDecimals&quot; value=&quot;false&quot;/&gt;
+    &lt;/javaTypeResolver&gt;
+
+
+    &lt;!-- Model模型生成器,用来生成含有主键key的类，记录类 以及查询Example类
+        targetPackage     指定生成的model生成所在的包名
+        targetProject     指定在该项目下所在的路径|指定生成到的工程名称
+    --&gt;
+    &lt;javaModelGenerator targetPackage=&quot;com.crm.settings.domain&quot;
+                        targetProject=&quot;D:/CRM-Management/CRM/src/main/java&quot;&gt;
+
+        &lt;!-- 是否允许子包，即targetPackage.schemaName.tableName --&gt;
+        &lt;property name=&quot;enableSubPackages&quot; value=&quot;false&quot;/&gt;
+        &lt;!-- 是否对model添加 构造函数 true添加，false不添加--&gt;
+        &lt;property name=&quot;constructorBased&quot; value=&quot;false&quot;/&gt;
+        &lt;!-- 是否对类CHAR类型的列的数据进行trim操作 --&gt;
+        &lt;property name=&quot;trimStrings&quot; value=&quot;true&quot;/&gt;
+        &lt;!-- 建立的Model对象是否 不可改变  即生成的Model对象不会有 setter方法，只有构造方法 --&gt;
+        &lt;property name=&quot;immutable&quot; value=&quot;false&quot;/&gt;
+    &lt;/javaModelGenerator&gt;
+
+    &lt;!--Mapper映射文件生成所在的目录 为每一个数据库的表生成对应的SqlMap文件 --&gt;
+    &lt;sqlMapGenerator targetPackage=&quot;com.crm.settings.mapper&quot;
+                     targetProject=&quot;D:/CRM-Management/CRM/src/main/java&quot;&gt;
+        &lt;property name=&quot;enableSubPackages&quot; value=&quot;false&quot;/&gt;
+    &lt;/sqlMapGenerator&gt;
+
+    &lt;!-- 客户端代码，生成易于使用的针对Model对象和XML配置文件 的代码
+            type=&quot;ANNOTATEDMAPPER&quot;,生成Java Model 和基于注解的Mapper对象
+            type=&quot;MIXEDMAPPER&quot;,生成基于注解的Java Model 和相应的Mapper对象
+            type=&quot;XMLMAPPER&quot;,生成SQLMap XML文件和独立的Mapper接口
+    --&gt;
+     &lt;javaClientGenerator targetPackage=&quot;com.crm.settings.mapper&quot;
+                         targetProject=&quot;D:/CRM-Management/CRM/src/main/java&quot; type=&quot;XMLMAPPER&quot;&gt;
+        &lt;property name=&quot;enableSubPackages&quot; value=&quot;true&quot;/&gt;
+    &lt;/javaClientGenerator&gt;
+
+
+    &lt;table tableName=&quot;tbl_user&quot; domainObjectName=&quot;User&quot;
+           enableCountByExample=&quot;false&quot; enableUpdateByExample=&quot;false&quot;
+           enableDeleteByExample=&quot;false&quot; enableSelectByExample=&quot;false&quot;
+           selectByExampleQueryId=&quot;false&quot;&gt;
+    &lt;/table&gt;
+
+    &lt;/context&gt;
+&lt;/generatorConfiguration&gt;
+</code></pre>
+<p>配置完成后在idea右侧的maven中寻找到这个插件，双击启动运行便可以自动生成对应的pojo实体类，mapper.xml配置文件<br>
+<img src="https://Git0814.github.io/post-images/1667265332694.png" alt="" loading="lazy"></p>
+<p>还有另外一种方法不用手动编写，那就是直接在idea中下载插件<br>
+<img src="https://Git0814.github.io/post-images/1667265449538.png" alt="" loading="lazy"></p>
+<p>然后连接到自己的数据库，再选中要生成数据的表，<br>
+<img src="https://Git0814.github.io/post-images/1667266849992.png" alt="" loading="lazy"><br>
+点击最后配置相应的路径即可<br>
+<img src="https://Git0814.github.io/post-images/1667266950521.png" alt="" loading="lazy"></p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/fastjson-shi-yong-bao-cuo/">
+              <h3 class="post-title">
+                FastJson使用报错
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

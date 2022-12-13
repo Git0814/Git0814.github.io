@@ -1,0 +1,263 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redis(四）持久化——RDB和AOF | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Redis(四）持久化——RDB和AOF | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="为了能够重用Redis数据，或者防止系统故障，我们需要将Redis中的数据写入到磁盘空间中，即持久化。Redis提供了两种不同的持久化方法可以将数据存储在磁盘中，一种叫快照RDB，另一种叫只追加文件AOF.
+一、RDB（内存快照）持久化
+R..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Redis(四）持久化——RDB和AOF
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-15
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>为了能够重用Redis数据，或者防止系统故障，我们需要将Redis中的数据写入到磁盘空间中，即持久化。Redis提供了两种不同的持久化方法可以将数据存储在磁盘中，一种叫快照RDB，另一种叫只追加文件AOF.</p>
+<h2 id="一-rdb内存快照持久化">一、RDB（内存快照）持久化</h2>
+<p>RDB持久化是把当前进程数据生成快照保存到磁盘上的过程，由于是某一时刻的快照，那么快照中的值只能早于或者等于内存中的值。</p>
+<p>RDB持久化触发有两种方式：1、手动触发（save和bgsave），2、自动触发</p>
+<p>手动触发：</p>
+<p>SAVE命令在生成RDB文件的时候会阻塞Redis的进程，直到RDB过程完成为止，对于内存比较大的实例会造成长时间阻塞。<br>
+而BGSAVE会创建一个子进程（fork）来生成RDB文件，RDB持久化过程由子进程负责，完成后自动结束。阻塞只发生在fork阶段，一般时间很短不会阻塞服务器的进程。</p>
+<p>BGSAVE的具体流程：</p>
+<ul>
+<li>redis客户端执行bgsave命令；</li>
+<li>主进程判断是否存在子进程，如果有则直接返回，没有的话就创建一个子进程，当创建这个子进程的时候，创建的过程（fork）是阻塞的，当fork操作完成之后主进程便可继续执行其他操作；</li>
+<li>子进程将数据写入一个新的临时rdb文件中，数据写完后覆盖原来的旧的rdb文件；</li>
+<li>最后发送信号给主进程，通知主进程rdb进程完成。</li>
+</ul>
+<p>自动触发：</p>
+<ul>
+<li>redis.conf中配置save m n，即在m秒内有n次修改时，自动触发bgsave生成rdb文件；</li>
+<li>主从复制时，从节点要从主节点进行全量复制时也会触发bgsave操作，生成当时的快照发送到从节点；</li>
+<li>执行debug reload命令重新加载redis时也会触发bgsave操作；</li>
+<li>默认情况下执行shutdown命令时，如果没有开启aof持久化，那么也会触发bgsave操作</li>
+</ul>
+<p>redis.conf中的配置信息：</p>
+<pre><code># 周期性执行条件的设置格式为
+save &lt;seconds&gt; &lt;changes&gt;
+
+save 900 1 #900秒内有1条key发生变化就进行快照
+save 300 10 #300秒内有10条key发生变化就进行快照
+save 60 10000 #60秒内有10000条key发生变化就进行快照
+</code></pre>
+<p>RDB最后一个数据不会被存储？<br>
+数据快照通俗来说就相当于是给数据照了一个照片，而在时间间隔里面是不会对数据进行快照操作的，所以才会出现最后一个数据无法存储的现象。比如在<code>T</code>时刻进行了数据快照，而在<code>t</code>时间间隔内，又有了几次数据修改，但数据快照会在<code>T+t</code>时刻进行，所以如果在<code>t</code>时间间隔内，机器宕机之后，只能按照<code>T</code>时刻的快照进行恢复，而<code>t</code>时间间隔内的所有数据将丢失。<br>
+所以如果想要尽可能的避免数据的丢失，就要尽可能的缩短数据快照的时间间隔t，但是当t变得很小之后，每次fork一个子进程也会对父进程起到阻塞。</p>
+<h2 id="二-aof持久化">二、AOF持久化</h2>
+<p>AOF以日志的形式来记录写操作，将redis执行过的所有写指令记录下来，只能追加文件不能改写文件。redis重启的话就是根据日志文件中的内容将写指令从前到后执行一遍，从而恢复数据。<br>
+AOF日志采用写后日志，即先写内存，后写日志。这样的话在向 AOF 里面记录日志的时候，并不会先去对这些命令进行语法检查。所以，如果先记日志再执行命令的话，日志中就有可能记录了错误的命令，Redis 在使用日志恢复数据时，就可能会出错，这样就避免了一些额外的检查开销。并且不会阻塞当前的写操作。</p>
+<p>默认情况下Redis是没有开启AOF的，可以通过配置redis.conf文件来开启AOF持久化，关于AOF的配置如下：</p>
+<pre><code># appendonly参数开启AOF持久化
+appendonly no #修改为yes之后，开启aof
+</code></pre>
+<p>redis7之后，不再单独生成一个appendonly.aof文件，而是生成一个appendonlydir文件夹，里面有三个文件：<br>
+appendonly.aof.1.base.rdb<br>
+appendonly.aof.1.incr.aof<br>
+appendonly.aof.manifest</p>
+<p>官方config文件中标明了：</p>
+<pre><code># For example, if appendfilename is set to appendonly.aof, the following file
+# names could be derived:
+
+# - appendonly.aof.1.base.rdb as a base file.
+# - appendonly.aof.1.incr.aof, appendonly.aof.2.incr.aof as incremental files.
+# - appendonly.aof.manifest as a manifest file.
+</code></pre>
+<p>当开启了aof选项之后，服务器会将接收到的写命令以追加的方式写入服务器的AOF缓冲区，然后由服务器按照不同的AOF持久化选项以不同的策略将缓冲区的命令写入AOF文件。</p>
+<p>文件写入和同步 关于何时将 aof_buf 缓冲区的内容写入AOF文件中，Redis提供了三种写回策略：<br>
+Always，同步写回：每个写命令执行完，立马同步地将日志写回磁盘；<br>
+Everysec，每秒写回：每隔一秒进行一次AOF文件同步。由于同步AOF文件是阻塞操作，所以当前一次同步操作耗时超过1秒的时候，下一次同步操作将会到等上一次同步完成以后才进行，因此最差情况下会造成延迟2秒的同步；<br>
+No，操作系统控制的写回：每个写命令执行完，只是先把日志写到AOF文件的内存缓冲区，由操作系统决定何时将缓冲区内容写回磁盘。</p>
+<p>always的数据安全性最高，但是服务的性能会受到影响；如果选项值设置为no，那么数据安全性的保证相对较弱，但是服务器的性能有所提高；而everysec则是这两种场景的一个折中。</p>
+<p>重写aof文件：</p>
+<p>AOF会记录每个写命令到AOF文件，随着时间越来越长，AOF文件会变得越来越大。如果不加以控制，会对Redis服务器，甚至对操作系统造成影响，而且AOF文件越大，数据恢复也越慢（由于AOF文件恢复需要重放AOF文件中的所有命令，所以数据库的恢复时间和AOF文件的大小成正比）。Redis为了解决AOF文件太大的情况，提供了AOF文件重写的功能。通过对AOF文件进行重写，将一些命令进行合并来达到缩减AOF文件的目的，最终实现减少AOF文件恢复时间的目的。</p>
+<pre><code>#重写前：
+127.0.0.1:6379&gt; lpush value v1 v2 v3
+(integer) 3
+127.0.0.1:6379&gt; rpop value
+&quot;v1&quot;
+127.0.0.1:6379&gt; lpush value v4 v5
+(integer) 4
+127.0.0.1:6379&gt; lrange value 0 -1
+1) &quot;v5&quot;
+2) &quot;v4&quot;
+3) &quot;v3&quot;
+4) &quot;v2&quot;
+
+#重写后：
+lpush value v2 v3 v4 v5
+</code></pre>
+<p>当重写aof文件时候，redis服务器是还可以继续处理请求的，所以aof文件会继续追加命令，如果不对重写和追加命令进行一定的管理的话就会产生aof文件命令数据不一致的问题。<br>
+为了解决这个问题，redis会在aof文件重写开始以后创建一个aof重写缓冲区。当服务器接收到写命令以后，会同步将这个命令写入aof重写缓冲区和原先的aof追加缓冲区。这保证了在aof重写期间，redis服务器可以继续进行aof持久化，而且新接受到的命令也会被记录到aof重写缓冲区中。<br>
+在aof重写日志期间发生宕机的话，因为日志文件还没切换，所以恢复数据时，用的还是旧的日志文件。</p>
+<p>恢复数据：</p>
+<ul>
+<li>redis重启时判断是否开启aof，如果开启了aof，那么就优先加载aof文件；</li>
+<li>如果aof存在，那么就去加载aof文件，加载成功的话redis重启成功，如果aof文件加载失败，那么会打印日志表示启动失败，此时可以去修复aof文件后重新启动；</li>
+<li>若aof文件不存在，那么redis就会转而去加载rdb文件，如果rdb文件不存在，redis直接启动成功；</li>
+<li>如果rdb文件存在就会去加载rdb文件恢复数据，如加载失败则打印日志提示启动失败，如加载成功，那么redis重启成功，且使用rdb文件恢复数据；</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%B8%80-rdb%E5%86%85%E5%AD%98%E5%BF%AB%E7%85%A7%E6%8C%81%E4%B9%85%E5%8C%96">一、RDB（内存快照）持久化</a></li>
+<li><a href="#%E4%BA%8C-aof%E6%8C%81%E4%B9%85%E5%8C%96">二、AOF持久化</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/redissan-shi-wu/">
+              <h3 class="post-title">
+                Redis（三）事务
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,202 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redis（六）集群 | PANDACODE</title>
+<link rel="shortcut icon" href="https://Git0814.github.io/favicon.ico?v=1670933208141">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Git0814.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Redis（六）集群 | PANDACODE - Atom Feed" href="https://Git0814.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="redis共有16384 slots covered.个插槽。
+一个集群包括16384个插槽，数据库中的每个键都属于这16384中的其中一个。集群使用CRC16(Key)%16384来计算key属于哪个槽。CRC16(Key)语句用于计算键..." />
+    <meta name="keywords" content="redis" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Git0814.github.io">
+  <img class="avatar" src="https://Git0814.github.io/images/avatar.png?v=1670933208141" alt="">
+  </a>
+  <h1 class="site-title">
+    PANDACODE
+  </h1>
+  <p class="site-description">
+    我亦无他，唯手熟尔
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Git0814" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Redis（六）集群
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-11-17
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://Git0814.github.io/tag/73TYNIJQh/" class="post-tag">
+                  # redis
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>redis共有16384 slots covered.个插槽。<br>
+一个集群包括16384个插槽，数据库中的每个键都属于这16384中的其中一个。集群使用CRC16(Key)%16384来计算key属于哪个槽。CRC16(Key)语句用于计算键Key的CRC16校验和。</p>
+<p>127.0.0.1:8000&gt; set k1 v1<br>
+-&gt; Redirected to slot [12706] located at 192.168.164.128:8002<br>
+OK<br>
+<img src="https://Git0814.github.io/post-images/1668692674111.png" alt="" loading="lazy"></p>
+<p>192.168.164.128:8002&gt; mset name wang age 20 address china<br>
+192.168.164.128:8002&gt; mset k1 v1 k2 v2<br>
+(error) CROSSSLOT Keys in request don't hash to the same slot<br>
+集群不能一次添加多个数据，不然没法找到对应的插槽。<br>
+要想添加多个，就需要把这些值以分组的形式进行添加<br>
+192.168.164.128:8002&gt; mset name{user} lucy age{user} 20<br>
+-&gt; Redirected to slot [5474] located at 192.168.164.128:8001<br>
+OK</p>
+<p>计算插槽值：<br>
+cluster keyslot [key]</p>
+<p>查看插槽中的值数量：<br>
+cluster countkeysinslot [插槽值]<br>
+只能查看自己内部的插槽值，而不能查看外部的：<br>
+192.168.164.128:8001&gt; cluster countkeysinslot 12706<br>
+(integer) 0<br>
+192.168.164.128:8001&gt; cluster countkeysinslot 5474<br>
+(integer) 2</p>
+<p>故障恢复特点：<br>
+主机挂掉，从机上任：<br>
+<img src="https://Git0814.github.io/post-images/1668693459562.png" alt="" loading="lazy"><br>
+当原来的主机8001重新启动之后可以清楚的看到他变成了原来的从机的从机<br>
+<img src="https://Git0814.github.io/post-images/1668693636142.png" alt="" loading="lazy"></p>
+<p>。。。。。。。。后面不想写了</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Git0814.github.io/post/rediswu-zhu-cong-fu-zhi/">
+              <h3 class="post-title">
+                Redis（五）主从复制
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Thanks for reading!
+  <a class="rss" href="https://Git0814.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
